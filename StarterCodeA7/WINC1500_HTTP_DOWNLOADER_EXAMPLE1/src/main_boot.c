@@ -1,113 +1,3 @@
-/**
- *
- * \file
- *
- * \brief HTTP File Downloader Example.
- *
- * Copyright (c) 2016-2018 Microchip Technology Inc. and its subsidiaries.
- *
- * \asf_license_start
- * \page License
- *
- * Subject to your compliance with these terms, you may use Microchip
- * software and any derivatives exclusively with Microchip products.
- * It is your responsibility to comply with third party license terms applicable
- * to your use of third party software (including open source software) that
- * may accompany Microchip software.
- *
- * THIS SOFTWARE IS SUPPLIED BY MICROCHIP "AS IS". NO WARRANTIES,
- * WHETHER EXPRESS, IMPLIED OR STATUTORY, APPLY TO THIS SOFTWARE,
- * INCLUDING ANY IMPLIED WARRANTIES OF NON-INFRINGEMENT, MERCHANTABILITY,
- * AND FITNESS FOR A PARTICULAR PURPOSE. IN NO EVENT WILL MICROCHIP BE
- * LIABLE FOR ANY INDIRECT, SPECIAL, PUNITIVE, INCIDENTAL OR CONSEQUENTIAL
- * LOSS, DAMAGE, COST OR EXPENSE OF ANY KIND WHATSOEVER RELATED TO THE
- * SOFTWARE, HOWEVER CAUSED, EVEN IF MICROCHIP HAS BEEN ADVISED OF THE
- * POSSIBILITY OR THE DAMAGES ARE FORESEEABLE.  TO THE FULLEST EXTENT
- * ALLOWED BY LAW, MICROCHIP'S TOTAL LIABILITY ON ALL CLAIMS IN ANY WAY
- * RELATED TO THIS SOFTWARE WILL NOT EXCEED THE AMOUNT OF FEES, IF ANY,
- * THAT YOU HAVE PAID DIRECTLY TO MICROCHIP FOR THIS SOFTWARE.
- *
- * \asf_license_stop
- *
- */
-
-/** \mainpage
- * \section intro Introduction
- * This example demonstrates how to connect to an HTTP server and download
- * a file using HTTP client.<br>
- * It uses the following hardware:
- * - the SAM Xplained Pro.
- * - the WINC1500 on EXT1.
- * - the IO1 Xplained Pro on EXT2.
- *
- * \section files Main Files
- * - main.c : Initialize the SD card and WINC1500 Wi-Fi module, then download 
- * a file using HTTP client.
- *
- * \section usage Usage
- * -# Configure below code in the main.h for AP information to be connected.
- * \code
- *    #define MAIN_WLAN_SSID         "DEMO_AP"
- *    #define MAIN_WLAN_AUTH         M2M_WIFI_SEC_WPA_PSK
- *    #define MAIN_WLAN_PSK          "12345678"
- * \endcode
- *
- * -# Configure HTTP URL macro in the main.h file.
- * \code
- *    #define MAIN_HTTP_FILE_URL                   "http://www.atmel.com/Images/45093A-SmartConnectWINC1500_E_US_101014_web.pdf"
- * \endcode
- *
- * -# Build the program and download it into the board.
- * -# On the computer, open and configure a terminal application as following.
- * \code
- *    Baud Rate : 115200
- *    Data : 8bit
- *    Parity bit : none
- *    Stop bit : 1bit
- *    Flow control : none
- * \endcode
- *
- * -# Start the application.
- * -# In the terminal window, the following text should appear:<br>
- *
- * \code
- *    -- HTTP file downloader example --
- *    -- SAMXXX_XPLAINED_PRO --
- *    -- Compiled: xxx xx xxxx xx:xx:xx --
- *
- *    This example requires the AP to have internet access.
- *
- *    init_storage: please plug an SD/MMC card in slot...
- *    init_storage: mounting SD card...
- *    init_storage: SD card mount OK.
- *
- *    main: connecting to WiFi AP DEMO_AP...
- *    wifi_cb: M2M_WIFI_CONNECTED
- *    wifi_cb: IP address is 192.168.1.107
- *    start_download: sending HTTP request...
- *    resolve_cb: www.atmel.com IP address is 72.246.56.186
- *
- *    callcallback: HTTP client socket connected.
- *    http_client_callback: request completed.
- *    http_client_callback: received response 200 data size 1147097
- *    store_file_packet: creating file [0:45093A-SmartConnectWINC1500_E_US_101014_web.pdf]
- *    store_file_packet: received[xxx], file size[1147097]
- *    ...
- *    store_file_packet: received[1147097], file size[1147097]
- *    store_file_packet: file downloaded successfully.
- *    main: please unplug the SD/MMC card.
- *    main: done.
- * \endcode
- *
- * \section compinfo Compilation Information
- * This software was written for the GNU GCC compiler using Atmel Studio 6.2
- * Other compilers may or may not work.
- *
- * \section contactinfo Contact Information
- * For further information, visit
- * <A href="http://www.atmel.com">Atmel</A>.\n
- */
-
 #include <errno.h>
 #include "asf.h"
 #include "main.h"
@@ -121,7 +11,6 @@
 
 volatile char mqtt_msg [64]= "{\"d\":{\"temp\":17}}\"";
 volatile uint32_t temperature = 1;
-
 
 
 
@@ -169,6 +58,18 @@ static struct mqtt_module mqtt_inst;
 static unsigned char mqtt_read_buffer[MAIN_MQTT_BUFFER_SIZE];
 static unsigned char mqtt_send_buffer[MAIN_MQTT_BUFFER_SIZE];
 
+
+/**--------------------------CUSTOM DEFINES and our VARIABLES-----------------------*/
+
+/** All NVM address */]
+#define APP_START_ADDRESS ((uint32_t)0x8000)
+#define APP_START_RESET_VEC_ADDRESS (APP_START_ADDRESS +( uint32_t )0x04)	// Application address
+#define VERSION_ADDRESS ((uint32_t)0x7000)									// Version address
+#define OTA_ADDRESS ((uint32_t)0x70001)										// OTA address	
+
+bool otafu_flag = false;
+
+/**-----------------------------------------------------------*/
 
 /*HTPP RELATED STATIOC FUNCTIONS*/
 
@@ -850,7 +751,7 @@ static void configure_mqtt(void)
 	}
 }
 
-//SETUP FOR EXTERNAL BUTTON INTERRUPT -- Used to send an MQTT Message
+//SETUP FOR EXTERNAL BUTTON INTERRUPT --> Bootloader request
 void configure_extint_channel(void)
 {
     struct extint_chan_conf config_extint_chan;
@@ -877,11 +778,81 @@ volatile bool isPressed = false;
 void extint_detection_callback(void)
 {
 	//Publish some data after a button press and release. Note: just an example! This is not the most elegant way of doing this!
-	temperature++;
-	if (temperature > 40) temperature = 1;
-	snprintf(mqtt_msg, 63, "{\"d\":{\"temp\":%d}}", temperature);
+	//temperature++;
+	//if (temperature > 40) temperature = 1;
+	//snprintf(mqtt_msg, 63, "{\"d\":{\"temp\":%d}}", temperature);
 	isPressed = true;
-	
+}
+
+
+/***************************************************************************/
+
+/* 
+* CHECK BOOT MODE 
+*/ 
+int check_boot_mode()
+{
+	printf("boot mode: checking if bootloader or app code is to run ....\n\r");
+
+	if (isPressed == true)						// Button is pressed, run bootloader
+	{		
+		isPressed = false;
+		return 0;
+	}
+
+	if (*otafu_check_address_ptr == 0xFF)
+	{
+		otafu_flag = true;
+		return 0;
+	}
+
+	if (*app_check_address_ptr == 0xFFFFFFFF) 	// No application; run bootloader
+	{
+		return 0;
+	}
+
+	if (*ver_check_address_ptr == 0xFF)			// Even if application is present, version flag is empty
+	{
+		return 0;
+	}
+	return 1;
+}
+
+
+/* 
+* DEINITIALIZE PERIPHERALS 
+*/
+void disable_peripherals()
+{
+	disable_usart_deinit();
+	sd_deinit();
+}
+
+
+/* 
+* JUMP TO APPLICATION CODE 
+*/ 
+void jump_to_app()
+{
+	disable_peripherals();
+	// Pointer to the Application Section
+	void (*applicationcodeentry)(void);
+	// Re-base the Stack Pointer
+	__set_MSP(*(uint32_t *)APP_START_ADDRESS);
+	// Re-base the vector table base address TODO: use RAM
+	SCB->VTOR = ((uint32_t)APP_START_ADDRESS & SCB_VTOR_TBLOFF_Msk);
+	// Set pointer to application section
+	applicationcodeentry =(void (*)( void ))( unsigned *)(*( unsigned *)( APP_START_RESET_VEC_ADDRESS ));
+	// Jump to user Reset Handler in the application
+	applicationcodeentry();
+}
+
+/* 
+* ALL SD CARD OPERATIONS 
+*/ 
+int sd_card_to_nvm_copy()
+{
+
 }
 
 
@@ -907,7 +878,7 @@ int main(void)
 	configure_console();				/* Initialize the UART console. */
 	
 	printf(STRING_HEADER);
-	printf("\r\nInitializing Board and peripherals ...... \r\n\r\n");
+	printf("\r\nmain: Initializing Board and peripherals ...... \r\n\r\n");
 	
 	configure_timer();					/* Initialize the Timer. */	
 	configure_http_client();			/* Initialize the HTTP client service. */
@@ -934,28 +905,62 @@ int main(void)
 		while (1);
 	}
 
-	printf("\n\r >> Board and peripherals initialized\n\r");
+	printf("\n\rmain: >> Board and peripherals initialized\n\r");
 	printf("\n\r");
 	/** INITIALIZATION COMPLETE */	
 	
+
+	/** ----------------BOOTLAODER CODE---------------------*/
+	delay_s(1);
+	printf("\n\rmain: Booting up ..... \n\r");
+
+	BOOT_CHECK:
+	if (check_boot_mode() == 1)
+	{
+		printf("main: Starting Application ..... \n\r");
+		jump_to_app();
+	}
 	
+	// OTAFU request check 
+	if (otafu_flag == true)
+	{
+		printf("main: Checking OTA updates ..... \n\r");
+		///< download version & compare
+		///> jump out to check other conditions
+		///> download crc and new firmware 
+		///> compare crc and confirm
+		///> earse otafu nvm 
+		printf("main: >> New firmware downloaded\n\r");	
+		otafu_flag = false;
+	}
+
+	// SD card operation 
+	///> run nvm write code here
+	///> update version
+	sd_card_to_nvm_copy();
 	
+	printf("main: Starting Application ..... \n\r");
+	jump_to_app();
+
+
+	
+	/*
 	//DOWNLOAD A FILE
 	do_download_flag = true;
 
-	/* Initialize socket module. */
+	/* Initialize socket module. 
 	socketInit();
-	/* Register socket callback function. */
+	/* Register socket callback function. 
 	registerSocketCallback(socket_cb, resolve_cb);
 
-	/* Connect to router. */
+	/* Connect to router. 
 	printf("main: connecting to WiFi AP %s...\r\n", (char *)MAIN_WLAN_SSID);
 	m2m_wifi_connect((char *)MAIN_WLAN_SSID, sizeof(MAIN_WLAN_SSID), MAIN_WLAN_AUTH, (char *)MAIN_WLAN_PSK, M2M_WIFI_CH_ALL);
 
 	while (!(is_state_set(COMPLETED) || is_state_set(CANCELED))) {
-		/* Handle pending events from network controller. */
+		/* Handle pending events from network controller. 
 		m2m_wifi_handle_events(NULL);
-		/* Checks the timer timeout. */
+		/* Checks the timer timeout. 
 		sw_timer_task(&swt_module_inst);
 	}
 	printf("main: please unplug the SD/MMC card.\r\n");
@@ -967,23 +972,23 @@ int main(void)
 	delay_s(1);
 	
 	//CONNECT TO MQTT BROKER
-
-	do_download_flag = false;    /** Flag false indicating that mqtt broker to be contacted */
+	do_download_flag = false;    /** Flag false indicating that mqtt broker to be contacted 
 	
 	//Re-enable socket for MQTT Transfer
 	socketInit();
 	registerSocketCallback(socket_event_handler, socket_resolve_handler);
 
-		/* Connect to router. */
+		/* Connect to router. 
 	
 	if (mqtt_connect(&mqtt_inst, main_mqtt_broker))
 	{
 		printf("Error connecting to MQTT Broker!\r\n");
 	}
-	
+	*/
+	/*
 	while (1) {
 
-	/* Handle pending events from network controller. */
+		//Handle pending events from network controller.
 		m2m_wifi_handle_events(NULL);
 		sw_timer_task(&swt_module_inst);
 
@@ -999,6 +1004,9 @@ int main(void)
 			mqtt_yield(&mqtt_inst, 100);
 
 	}
+	*/
+	
+	
 	
 	return 0;
 }
