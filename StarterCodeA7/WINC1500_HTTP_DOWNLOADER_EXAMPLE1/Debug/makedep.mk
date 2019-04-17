@@ -46,6 +46,8 @@ src\ASF\common\components\wifi\winc1500\socket\source\socket.c
 
 src\ASF\common\components\wifi\winc1500\spi_flash\source\spi_flash.c
 
+src\ASF\common\services\crc32\crc32.c
+
 src\ASF\common\services\storage\ctrl_access\ctrl_access.c
 
 src\ASF\common\utils\interrupt\interrupt_sam_nvic.c
@@ -55,6 +57,8 @@ src\ASF\sam0\boards\samw25_xplained_pro\board_init.c
 src\ASF\sam0\drivers\extint\extint_callback.c
 
 src\ASF\sam0\drivers\extint\extint_sam_d_r_h\extint.c
+
+src\ASF\sam0\drivers\nvm\nvm.c
 
 src\ASF\sam0\drivers\port\port.c
 

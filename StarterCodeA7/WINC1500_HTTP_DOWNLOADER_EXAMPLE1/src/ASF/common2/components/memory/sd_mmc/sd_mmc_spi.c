@@ -92,6 +92,11 @@ static bool sd_mmc_spi_stop_write_block(void);
 static bool sd_mmc_spi_stop_multiwrite_block(void);
 
 
+void sd_deinit()
+{
+	spi_reset(&sd_mmc_master);
+}
+
 /**
  * \brief Calculates the CRC7
  *

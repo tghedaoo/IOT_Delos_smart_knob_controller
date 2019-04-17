@@ -61,13 +61,16 @@ static unsigned char mqtt_send_buffer[MAIN_MQTT_BUFFER_SIZE];
 
 /**--------------------------CUSTOM DEFINES and our VARIABLES-----------------------*/
 
-/** All NVM address */]
-#define APP_START_ADDRESS ((uint32_t)0x8000)
-#define APP_START_RESET_VEC_ADDRESS (APP_START_ADDRESS +( uint32_t )0x04)	// Application address
-#define VERSION_ADDRESS ((uint32_t)0x7000)									// Version address
-#define OTA_ADDRESS ((uint32_t)0x70001)										// OTA address	
+/** All NVM address */
+#define APP_START_ADDRESS ((uint32_t)0xF200)								// Application address
+#define APP_START_RESET_VEC_ADDRESS (APP_START_ADDRESS+(uint32_t)0x04)		
+#define VERSION_ADDRESS ((uint32_t)0xF000)									// Version address
+#define OTAFU_ADDRESS ((uint32_t)0xF002)									// OTAFU address	
 
 bool otafu_flag = false;
+
+char test_file_name[] = "0:Firmware.bin";
+char ver_file_name[] = "0:Version.txt";
 
 /**-----------------------------------------------------------*/
 
@@ -548,6 +551,20 @@ static void configure_console(void)
 	usart_enable(&cdc_uart_module);
 }
 
+
+///////////////////////////////////////////
+/**
+ * \DISABLE UART console.
+ */
+void disable_console()
+{
+	usart_disable(&cdc_uart_module);
+}
+
+/** SD card deinitialization */
+void sd_deinit();
+//////////////////////////////////////////
+
 /**
  * \brief Configure Timer module.
  */
@@ -792,27 +809,50 @@ void extint_detection_callback(void)
 */ 
 int check_boot_mode()
 {
+	
 	printf("boot mode: checking if bootloader or app code is to run ....\n\r");
+	
+	uint32_t app_check_address;
+	uint32_t *app_check_address_ptr;
+	uint32_t otafu_check_address;
+	uint8_t *otafu_check_address_ptr;
+	uint32_t ver_check_address;
+	uint16_t *ver_check_address_ptr;
+	
+	app_check_address = APP_START_ADDRESS;
+	app_check_address_ptr = (uint16_t *)app_check_address;
+
+	otafu_check_address = OTAFU_ADDRESS;
+	otafu_check_address_ptr = (uint8_t *)otafu_check_address;
+	
+	ver_check_address = VERSION_ADDRESS;
+	ver_check_address_ptr = (uint16_t *)ver_check_address;
+	
+	
 
 	if (isPressed == true)						// Button is pressed, run bootloader
-	{		
+	{	
+		printf("boot mode: >> Bootloader Button pressed \n\r");	
 		isPressed = false;
 		return 0;
 	}
 
-	if (*otafu_check_address_ptr == 0xFF)
+	if (*otafu_check_address_ptr != 0xFF)		// OTAFU requested; run bootloader
 	{
+		printf("boot mode: >> OTAFU \n\r");
 		otafu_flag = true;
 		return 0;
 	}
 
 	if (*app_check_address_ptr == 0xFFFFFFFF) 	// No application; run bootloader
 	{
+		printf("boot mode: >> NO APP AVAILABLE \n\r");
 		return 0;
 	}
 
 	if (*ver_check_address_ptr == 0xFF)			// Even if application is present, version flag is empty
 	{
+		printf("boot mode: >> NO VERSION FLAG \n\r");
 		return 0;
 	}
 	return 1;
@@ -820,11 +860,14 @@ int check_boot_mode()
 
 
 /* 
-* DEINITIALIZE PERIPHERALS 
+* DEINITIALIZE HARDWARE 
 */
 void disable_peripherals()
 {
-	disable_usart_deinit();
+	printf("disable peripherals: Deinitializing peripherals ..... \n\r");
+	
+	cpu_irq_disable();
+	disable_console();
 	sd_deinit();
 }
 
@@ -832,29 +875,240 @@ void disable_peripherals()
 /* 
 * JUMP TO APPLICATION CODE 
 */ 
-void jump_to_app()
+static void jump_to_app(void)
 {
+	
+	printf("jump_to_app: Jumping to Application ..... \n\r");
+	
 	disable_peripherals();
-	// Pointer to the Application Section
-	void (*applicationcodeentry)(void);
-	// Re-base the Stack Pointer
-	__set_MSP(*(uint32_t *)APP_START_ADDRESS);
-	// Re-base the vector table base address TODO: use RAM
-	SCB->VTOR = ((uint32_t)APP_START_ADDRESS & SCB_VTOR_TBLOFF_Msk);
-	// Set pointer to application section
-	applicationcodeentry =(void (*)( void ))( unsigned *)(*( unsigned *)( APP_START_RESET_VEC_ADDRESS ));
-	// Jump to user Reset Handler in the application
-	applicationcodeentry();
+	
+	/// Function pointer to application section
+	void (*applicationCodeEntry)(void);
+	/// Rebase stack pointer
+	__set_MSP(*(uint32_t *) APP_START_ADDRESS);
+	/// Rebase vector table
+	SCB->VTOR = ((uint32_t) APP_START_ADDRESS & SCB_VTOR_TBLOFF_Msk);
+	/// Set pointer to application section
+	applicationCodeEntry =
+	(void (*)(void))(unsigned *)(*(unsigned *)(APP_START_RESET_VEC_ADDRESS));
+
+	/// Jump to application
+	applicationCodeEntry();
 }
 
 /* 
 * ALL SD CARD OPERATIONS 
 */ 
 int sd_card_to_nvm_copy()
-{
+{	
+	printf("sd_card_to_nvm_copy: Reading card ..... \n\r");
+	
+	/** Required SD card variables */
+	FRESULT res1;
+	
+	char sd_version_num[1];
+	uint8_t nvm_version_num;
+	
+	enum status_code error_code;
+	
+	crc32_t crc_mem;
+	crc32_t crc_mem1;
+	
+	uint8_t page_buffer[NVMCTRL_PAGE_SIZE];
+	uint8_t page_buffer1[NVMCTRL_PAGE_SIZE];
+	
+	///////////////////////////////////////////////////////
+	
+			
+	/************* Check for Firmware version on SD Card ***************/
+	
+	ver_file_name[0] = LUN_ID_SD_MMC_0_MEM + '0';
+	res1 = f_open(&file_object,(char const *)ver_file_name,FA_READ);
+	f_gets(sd_version_num,&file_object.fsize,&file_object);
+	f_close(&file_object);	
+	
+	uint8_t sd_version_num1 = atoi(sd_version_num);		
+	
+	do
+	{
+		error_code = nvm_read_buffer(VERSION_ADDRESS,&nvm_version_num,1);			
+	} while (error_code == STATUS_BUSY);
+		
+	char str11[50];
+	char str21[50];
+	sprintf(str11, "SD_VER = %u\n\r", (uint8_t)sd_version_num1);
+	printf("%s",str11);
+	//SerialConsoleWriteString(str11);
+	sprintf(str21, "NVM_VER = %u\n\r", (uint8_t)nvm_version_num);
+	printf("%s",str21);
+	//SerialConsoleWriteString(str21);
+	
+	if((((uint8_t) nvm_version_num != 255) && ((uint8_t)sd_version_num[0] > (uint8_t)nvm_version_num)) || ((uint8_t) nvm_version_num == 255))   ///<changed here
+	{
+		printf("sd_card_to_nvm_copy: Version Different, Writing new code ..... \n\r");
+		//goto SD_OPERATION;
+	}
+	else
+	{
+		printf("sd_card_to_nvm_copy: >> Version Same \n\r");
+		jump_to_app();
+	}
+	
+	/************* Version Check Complete ***************/	
+	///////////////////////////////////////////////////////////////////
+	
+	
+	//SD_OPERATION:
+	
+	/**************** Open Firmware File ******************/
+	test_file_name[0] = LUN_ID_SD_MMC_0_MEM + '0';
+	res1 = f_open(&file_object,(char const*)test_file_name,FA_READ);
+	if (res1 != FR_OK)
+		{
+			printf("sd operation: >> Opening a file failed\n\r");
+			//goto BOOT_CHECK;
+			return 1;
+		}
+	
+	printf("sd operation: >> File open success\n\r");
+	
+	
+	/**************** Read one Page at a time, Erase NVM and write to NVM ******************/
+	
+	printf("sd operation: initiating firmware write to nvm ....... \n\r");
 
+	uint32_t bytes_read = 0;
+	uint32_t num_pages=0;
+	uint32_t off_set=0;
+	uint32_t fw_size= f_size(&file_object);
+	uint32_t rem = fw_size%NVMCTRL_PAGE_SIZE;
+	if(rem!=0)
+	{
+		num_pages = (fw_size/NVMCTRL_PAGE_SIZE)+1;
+		off_set = fw_size - ((num_pages-1) * NVMCTRL_PAGE_SIZE);
+	}
+	else
+	{
+		num_pages = (fw_size/NVMCTRL_PAGE_SIZE);
+		off_set = 0;
+	}
+		
+	if (fw_size != 0)
+	{
+		uint32_t current_page = 0;
+		uint32_t curr_address = 0;
+		uint16_t rows_clear = fw_size / NVMCTRL_ROW_SIZE;
+		uint16_t i;
+			
+		//Clear NVM
+		/** -------------- NVM writing ----------------------------- */
+		printf("sd operation: erasing nvm location ....... \n\r");
+		for (i = 0; i <= rows_clear; i++)
+		{
+			do
+			{
+					error_code = nvm_erase_row((APP_START_ADDRESS) + (NVMCTRL_ROW_SIZE * i));
+					
+			} while (error_code == STATUS_BUSY);
+		}
+			
+		//Write to NVM
+		/** -------------- NVM writing ----------------------------- */
+		printf("sd operation: writing firmware to crc ....... \n\r");
+		for(uint16_t j=0;j<num_pages;j++)
+		{
+				f_read(&file_object,page_buffer,NVMCTRL_PAGE_SIZE,&bytes_read);
+				if((j==(num_pages-1)) && off_set!=0)
+				{
+					crc32_recalculate(page_buffer,off_set,&crc_mem);
+				}
+				else
+				{
+					crc32_recalculate(page_buffer,NVMCTRL_PAGE_SIZE,&crc_mem);
+				}
+				
+				do
+				{
+					error_code = nvm_write_buffer(APP_START_ADDRESS+(j*NVMCTRL_PAGE_SIZE),page_buffer,bytes_read);
+					
+				} while (error_code == STATUS_BUSY);
+		}
+
+		// Read for CRC calculation
+		/** -------------- CRC NVM calculation ----------------------------- */
+		printf("sd operation: calculating nvm firmware crc ....... \n\r");
+		for(uint16_t k=0;k<num_pages;k++)
+		{
+				do
+				{
+					error_code = nvm_read_buffer(APP_START_ADDRESS+(k*NVMCTRL_PAGE_SIZE),page_buffer1,NVMCTRL_PAGE_SIZE);
+					
+				} while (error_code == STATUS_BUSY);
+				
+				if((k==(num_pages-1)) && off_set!=0)
+				{
+					crc32_recalculate(page_buffer1,off_set,&crc_mem1);
+				}
+				else
+				{
+					crc32_recalculate(page_buffer1,NVMCTRL_PAGE_SIZE,&crc_mem1);
+				}
+				
+		}
+	}
+	f_close(&file_object);
+		
+	
+	/** -------------- CRC Verification ----------------------------- */
+	printf("sd operation: verfying crc of sd card firmware and nvm firmware ....... \n\r");
+
+	char str1[50];
+	char str2[50];
+	sprintf(str1, "CRC_MEM = %u\n\r", (uint32_t*)crc_mem);
+	//SerialConsoleWriteString(str1);
+	printf("%s",str1);
+	sprintf(str2, "CRC_NVM = %u\n\r", (uint32_t*)crc_mem1);
+	printf("%s",str2);
+	//SerialConsoleWriteString(str2);
+	
+	delay_s(1);
+	
+	if(crc_mem == crc_mem1)
+	{
+		do
+		{
+			error_code = nvm_erase_row(VERSION_ADDRESS);
+		} while (error_code == STATUS_BUSY);		
+		
+		do
+		{
+			error_code = nvm_write_buffer(VERSION_ADDRESS,&sd_version_num1,1);
+		} while (error_code == STATUS_BUSY);
+		
+		printf("sd operation: >> NEW FIRMWARE VERSION UPDATED \n\r");		
+		printf("sd operation: >> NEW FIRMWARE WRITTEN SUCCESSFULLY \n\r");
+
+		jump_to_app();
+	}
+	else
+	{
+		//goto BOOT_CHECK;
+		return 1;
+	}
 }
 
+/* 
+* OTA NEW FIRMWARE AND METADATA DOWNLOAD 
+*/
+int otafu_download()
+{
+	printf("otafu_download: Downloading update version ..... \n\r");
+	///< download version & compare
+	///> jump out to check other conditions
+	///> download crc and new firmware 
+	///> compare crc and confirm
+	///> earse otafu nvm 	
+}
 
 /////////////////////////////////////////////////////////////////////////////
 ///* ...... MAIN ........ *
@@ -925,21 +1179,17 @@ int main(void)
 	if (otafu_flag == true)
 	{
 		printf("main: Checking OTA updates ..... \n\r");
-		///< download version & compare
-		///> jump out to check other conditions
-		///> download crc and new firmware 
-		///> compare crc and confirm
-		///> earse otafu nvm 
+		otafu_download();
 		printf("main: >> New firmware downloaded\n\r");	
 		otafu_flag = false;
 	}
 
-	// SD card operation 
-	///> run nvm write code here
-	///> update version
-	sd_card_to_nvm_copy();
+	// SD card operation
+	if(sd_card_to_nvm_copy() == 1)
+	{
+		goto BOOT_CHECK;	
+	} 			
 	
-	printf("main: Starting Application ..... \n\r");
 	jump_to_app();
 
 

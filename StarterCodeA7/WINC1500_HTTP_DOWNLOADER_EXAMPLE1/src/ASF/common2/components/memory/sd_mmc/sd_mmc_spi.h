@@ -70,6 +70,9 @@ typedef uint8_t sd_mmc_spi_errno_t;
 //! @}
 
 
+
+
+
 /** \brief Return the error code of last function
  *
  * \return error code

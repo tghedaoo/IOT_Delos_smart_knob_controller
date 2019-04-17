@@ -1,5 +1,7 @@
 src/iot/stream_writer.d src/iot/stream_writer.o: \
- ../src/iot/stream_writer.c ../src/asf.h ../src/ASF/sam0/utils/compiler.h \
+ ../src/iot/stream_writer.c ../src/asf.h \
+ ../src/ASF/common/services/crc32/crc32.h \
+ ../src/ASF/sam0/utils/compiler.h \
  c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\lib\gcc\arm-none-eabi\6.3.1\include\stddef.h \
  ../src/ASF/common/utils/parts.h ../src/ASF/sam0/utils/status_codes.h \
  c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\lib\gcc\arm-none-eabi\6.3.1\include\stdint.h \
@@ -129,7 +131,7 @@ src/iot/stream_writer.d src/iot/stream_writer.o: \
  ../src/ASF/common/services/storage/ctrl_access/ctrl_access.h \
  ../src/config/conf_access.h \
  ../src/ASF/common2/components/memory/sd_mmc/sd_mmc_mem.h \
- ../src/ASF/sam0/drivers/port/port.h \
+ ../src/ASF/sam0/drivers/nvm/nvm.h ../src/ASF/sam0/drivers/port/port.h \
  ../src/ASF/sam0/drivers/rtc/rtc_calendar.h ../src/config/conf_clocks.h \
  ../src/ASF/sam0/drivers/system/interrupt/system_interrupt.h \
  ../src/ASF/sam0/drivers/system/interrupt/system_interrupt_samd21/system_interrupt_features.h \
@@ -162,6 +164,8 @@ src/iot/stream_writer.d src/iot/stream_writer.o: \
  ../src/ASF/sam0/drivers/tcc/tcc.h ../src/iot/stream_writer.h
 
 ../src/asf.h:
+
+../src/ASF/common/services/crc32/crc32.h:
 
 ../src/ASF/sam0/utils/compiler.h:
 
@@ -424,6 +428,8 @@ c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-no
 ../src/config/conf_access.h:
 
 ../src/ASF/common2/components/memory/sd_mmc/sd_mmc_mem.h:
+
+../src/ASF/sam0/drivers/nvm/nvm.h:
 
 ../src/ASF/sam0/drivers/port/port.h:
 
