@@ -189,8 +189,8 @@ src/main_boot.d src/main_boot.o: ../src/main_boot.c \
  ../src/ASF/thirdparty/pahomqtt/MQTTPacket/MQTTFormat.h \
  ../src/ASF/thirdparty/pahomqtt/MQTTPacket/StackTrace.h \
  ../src/ASF/thirdparty/pahomqtt/MQTTPacket/MQTTPacket.h \
- ../src/SerialConsole/SerialConsole.h \
- ../src/SerialConsole/circular_buffer.h
+ ../src/ASF/common2/components/memory/sd_mmc/sd_mmc_spi.h \
+ ../src/ASF/common2/components/memory/sd_mmc/sd_mmc_protocol.h
 
 c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-none-eabi\include\errno.h:
 
@@ -588,6 +588,6 @@ c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-no
 
 ../src/ASF/thirdparty/pahomqtt/MQTTPacket/MQTTPacket.h:
 
-../src/SerialConsole/SerialConsole.h:
+../src/ASF/common2/components/memory/sd_mmc/sd_mmc_spi.h:
 
-../src/SerialConsole/circular_buffer.h:
+../src/ASF/common2/components/memory/sd_mmc/sd_mmc_protocol.h:

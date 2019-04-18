@@ -6,7 +6,13 @@
 #include "socket/include/socket.h"
 #include "iot/http/http_client.h"
 #include "MQTTClient/Wrapper/mqtt.h"
-#include "SerialConsole/SerialConsole.h"
+
+#include <stdio.h>
+#include "crc32.h"
+#include "nvm.h"
+#include "sd_mmc_spi.h"
+#include <string.h>
+
 
 
 volatile char mqtt_msg [64]= "{\"d\":{\"temp\":17}}\"";
@@ -62,17 +68,32 @@ static unsigned char mqtt_send_buffer[MAIN_MQTT_BUFFER_SIZE];
 /**--------------------------CUSTOM DEFINES and our VARIABLES-----------------------*/
 
 /** All NVM address */
-#define APP_START_ADDRESS ((uint32_t)0xF200)								// Application address
+#define APP_START_ADDRESS ((uint32_t)0xF800)								// Application address
 #define APP_START_RESET_VEC_ADDRESS (APP_START_ADDRESS+(uint32_t)0x04)		
-#define VERSION_ADDRESS ((uint32_t)0xF000)									// Version address
-#define OTAFU_ADDRESS ((uint32_t)0xF002)									// OTAFU address	
+#define VERSION_ADDRESS ((uint32_t)0xF700)									// Version address
+#define OTAFU_ADDRESS ((uint32_t)0xF710)									// OTAFU address	
 
+
+/** ALL GLOBAL VARIABLES */
 bool otafu_flag = false;
 
 char test_file_name[] = "0:Firmware.bin";
 char ver_file_name[] = "0:Version.txt";
 
-/**-----------------------------------------------------------*/
+FRESULT res1;
+
+char sd_version_num[1];
+uint8_t nvm_version_num;
+	
+enum status_code error_code;
+	
+crc32_t crc_mem;
+crc32_t crc_mem1;
+	
+uint8_t page_buffer[NVMCTRL_PAGE_SIZE];
+uint8_t page_buffer1[NVMCTRL_PAGE_SIZE];
+
+/**-----------------------------------------------------------------------------------------------*/
 
 /*HTPP RELATED STATIOC FUNCTIONS*/
 
@@ -903,23 +924,6 @@ int sd_card_to_nvm_copy()
 {	
 	printf("sd_card_to_nvm_copy: Reading card ..... \n\r");
 	
-	/** Required SD card variables */
-	FRESULT res1;
-	
-	char sd_version_num[1];
-	uint8_t nvm_version_num;
-	
-	enum status_code error_code;
-	
-	crc32_t crc_mem;
-	crc32_t crc_mem1;
-	
-	uint8_t page_buffer[NVMCTRL_PAGE_SIZE];
-	uint8_t page_buffer1[NVMCTRL_PAGE_SIZE];
-	
-	///////////////////////////////////////////////////////
-	
-			
 	/************* Check for Firmware version on SD Card ***************/
 	
 	ver_file_name[0] = LUN_ID_SD_MMC_0_MEM + '0';
@@ -938,15 +942,12 @@ int sd_card_to_nvm_copy()
 	char str21[50];
 	sprintf(str11, "SD_VER = %u\n\r", (uint8_t)sd_version_num1);
 	printf("%s",str11);
-	//SerialConsoleWriteString(str11);
 	sprintf(str21, "NVM_VER = %u\n\r", (uint8_t)nvm_version_num);
 	printf("%s",str21);
-	//SerialConsoleWriteString(str21);
 	
 	if((((uint8_t) nvm_version_num != 255) && ((uint8_t)sd_version_num[0] > (uint8_t)nvm_version_num)) || ((uint8_t) nvm_version_num == 255))   ///<changed here
 	{
 		printf("sd_card_to_nvm_copy: Version Different, Writing new code ..... \n\r");
-		//goto SD_OPERATION;
 	}
 	else
 	{
@@ -954,12 +955,11 @@ int sd_card_to_nvm_copy()
 		jump_to_app();
 	}
 	
-	/************* Version Check Complete ***************/	
+	/*---------------------------------------Version Check Complete ----------------------------*/	
+	
+	
 	///////////////////////////////////////////////////////////////////
-	
-	
-	//SD_OPERATION:
-	
+		
 	/**************** Open Firmware File ******************/
 	test_file_name[0] = LUN_ID_SD_MMC_0_MEM + '0';
 	res1 = f_open(&file_object,(char const*)test_file_name,FA_READ);
@@ -969,7 +969,6 @@ int sd_card_to_nvm_copy()
 			//goto BOOT_CHECK;
 			return 1;
 		}
-	
 	printf("sd operation: >> File open success\n\r");
 	
 	
@@ -1001,20 +1000,19 @@ int sd_card_to_nvm_copy()
 		uint16_t i;
 			
 		//Clear NVM
-		/** -------------- NVM writing ----------------------------- */
+		/** -------------- NVM clearing ----------------------------- */
 		printf("sd operation: erasing nvm location ....... \n\r");
 		for (i = 0; i <= rows_clear; i++)
 		{
 			do
 			{
-					error_code = nvm_erase_row((APP_START_ADDRESS) + (NVMCTRL_ROW_SIZE * i));
-					
+					error_code = nvm_erase_row((APP_START_ADDRESS) + (NVMCTRL_ROW_SIZE * i));	
 			} while (error_code == STATUS_BUSY);
 		}
 			
 		//Write to NVM
 		/** -------------- NVM writing ----------------------------- */
-		printf("sd operation: writing firmware to crc ....... \n\r");
+		printf("sd operation: writing firmware to nvm ....... \n\r");
 		for(uint16_t j=0;j<num_pages;j++)
 		{
 				f_read(&file_object,page_buffer,NVMCTRL_PAGE_SIZE,&bytes_read);
@@ -1041,8 +1039,8 @@ int sd_card_to_nvm_copy()
 		{
 				do
 				{
-					error_code = nvm_read_buffer(APP_START_ADDRESS+(k*NVMCTRL_PAGE_SIZE),page_buffer1,NVMCTRL_PAGE_SIZE);
-					
+					error_code = nvm_read_buffer(APP_START_ADDRESS+(k*NVMCTRL_PAGE_SIZE),page_buffer1,NVMCTRL_PAGE_SIZE);	
+				
 				} while (error_code == STATUS_BUSY);
 				
 				if((k==(num_pages-1)) && off_set!=0)
@@ -1052,8 +1050,7 @@ int sd_card_to_nvm_copy()
 				else
 				{
 					crc32_recalculate(page_buffer1,NVMCTRL_PAGE_SIZE,&crc_mem1);
-				}
-				
+				}			
 		}
 	}
 	f_close(&file_object);
@@ -1065,12 +1062,10 @@ int sd_card_to_nvm_copy()
 	char str1[50];
 	char str2[50];
 	sprintf(str1, "CRC_MEM = %u\n\r", (uint32_t*)crc_mem);
-	//SerialConsoleWriteString(str1);
 	printf("%s",str1);
 	sprintf(str2, "CRC_NVM = %u\n\r", (uint32_t*)crc_mem1);
 	printf("%s",str2);
-	//SerialConsoleWriteString(str2);
-	
+
 	delay_s(1);
 	
 	if(crc_mem == crc_mem1)
@@ -1092,7 +1087,7 @@ int sd_card_to_nvm_copy()
 	}
 	else
 	{
-		//goto BOOT_CHECK;
+		printf("sd operation: >> NEW FIRMWARE WRITE FAILED\n\r");
 		return 1;
 	}
 }
@@ -1114,13 +1109,6 @@ int otafu_download()
 ///* ...... MAIN ........ *
 ////////////////////////////////////////////////////////////////////////////
 
-/**
- * \brief Main application function.
- *
- * Application entry point.
- *
- * \return program return value.
- */
 int main(void)
 {
 	/** INITIALIZATING THE BOARD AND PERIPHERALS */
@@ -1187,7 +1175,8 @@ int main(void)
 	// SD card operation
 	if(sd_card_to_nvm_copy() == 1)
 	{
-		goto BOOT_CHECK;	
+		goto BOOT_CHECK;
+		//exit(EXIT_FAILURE);	
 	} 			
 	
 	jump_to_app();
