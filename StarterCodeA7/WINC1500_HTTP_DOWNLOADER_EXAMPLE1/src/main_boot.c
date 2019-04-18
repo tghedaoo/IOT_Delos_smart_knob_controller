@@ -86,6 +86,8 @@ char sd_version_num[1];
 uint8_t nvm_version_num;
 	
 enum status_code error_code;
+
+struct nvm_config nvm_cfg;
 	
 crc32_t crc_mem;
 crc32_t crc_mem1;
@@ -836,18 +838,18 @@ int check_boot_mode()
 	uint32_t app_check_address;
 	uint32_t *app_check_address_ptr;
 	uint32_t otafu_check_address;
-	uint8_t *otafu_check_address_ptr;
+	uint32_t *otafu_check_address_ptr;
 	uint32_t ver_check_address;
-	uint16_t *ver_check_address_ptr;
+	uint32_t *ver_check_address_ptr;
 	
 	app_check_address = APP_START_ADDRESS;
-	app_check_address_ptr = (uint16_t *)app_check_address;
+	app_check_address_ptr = (uint32_t *)app_check_address;
 
 	otafu_check_address = OTAFU_ADDRESS;
-	otafu_check_address_ptr = (uint8_t *)otafu_check_address;
+	otafu_check_address_ptr = (uint32_t *)otafu_check_address;
 	
 	ver_check_address = VERSION_ADDRESS;
-	ver_check_address_ptr = (uint16_t *)ver_check_address;
+	ver_check_address_ptr = (uint32_t *)ver_check_address;
 	
 	
 
@@ -1131,6 +1133,10 @@ int main(void)
 	configure_extint_channel();			/*Initialize BUTTON 0 as an external interrupt*/
 	configure_extint_callbacks();
 
+	nvm_get_config_defaults(&nvm_cfg);
+	nvm_cfg.manual_page_write = false;
+	nvm_set_config(&nvm_cfg);
+
 	memset((uint8_t *)&param, 0, sizeof(tstrWifiInitParam));		/* Initialize Wi-Fi parameters structure. */
 
 	param.pfAppWifiCb = wifi_cb;									/* Initialize Wi-Fi driver with data and status callbacks. */
@@ -1156,30 +1162,27 @@ int main(void)
 	delay_s(1);
 	printf("\n\rmain: Booting up ..... \n\r");
 
-	BOOT_CHECK:
-	if (check_boot_mode() == 1)
+	while(1)
 	{
-		printf("main: Starting Application ..... \n\r");
-		jump_to_app();
-	}
+		if (check_boot_mode() == 1)
+		{
+			printf("main: Starting Application ..... \n\r");
+			jump_to_app();
+		}
 	
-	// OTAFU request check 
-	if (otafu_flag == true)
-	{
-		printf("main: Checking OTA updates ..... \n\r");
-		otafu_download();
-		printf("main: >> New firmware downloaded\n\r");	
-		otafu_flag = false;
-	}
+		// OTAFU request check 
+		if (otafu_flag == true)
+		{
+			printf("main: Checking OTA updates ..... \n\r");
+			otafu_download();
+			printf("main: >> New firmware downloaded\n\r");	
+			otafu_flag = false;
+		}
 
-	// SD card operation
-	if(sd_card_to_nvm_copy() == 1)
-	{
-		goto BOOT_CHECK;
-		//exit(EXIT_FAILURE);	
-	} 			
-	
-	jump_to_app();
+		// SD card operation
+		if(sd_card_to_nvm_copy() != 1)		
+			jump_to_app();
+	}
 
 
 	
