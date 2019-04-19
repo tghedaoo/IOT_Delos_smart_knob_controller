@@ -68,10 +68,10 @@ static unsigned char mqtt_send_buffer[MAIN_MQTT_BUFFER_SIZE];
 /**--------------------------CUSTOM DEFINES and our VARIABLES-----------------------*/
 
 /** All NVM address */
-#define APP_START_ADDRESS ((uint32_t)0xF800)								// Application address
+#define APP_START_ADDRESS ((uint32_t)0xFC00)								// Application address
 #define APP_START_RESET_VEC_ADDRESS (APP_START_ADDRESS+(uint32_t)0x04)		
-#define VERSION_ADDRESS ((uint32_t)0xF700)									// Version address
-#define OTAFU_ADDRESS ((uint32_t)0xF710)									// OTAFU address	
+#define VERSION_ADDRESS ((uint32_t)0xFA00)									// Version address
+#define OTAFU_ADDRESS ((uint32_t)0xFB00)									// OTAFU address	
 
 
 /** ALL GLOBAL VARIABLES */
@@ -603,9 +603,10 @@ static void configure_timer(void)
 /**
  * \brief Configure HTTP client module.
  */
+struct http_client_config httpc_conf;
 static void configure_http_client(void)
 {
-	struct http_client_config httpc_conf;
+	//struct http_client_config httpc_conf;
 	int ret;
 
 	http_client_get_config_defaults(&httpc_conf);
@@ -762,9 +763,10 @@ static void mqtt_callback(struct mqtt_module *module_inst, int type, union mqtt_
 /**
  * \brief Configure MQTT service.
  */
+struct mqtt_config mqtt_conf;
 static void configure_mqtt(void)
 {
-	struct mqtt_config mqtt_conf;
+	//struct mqtt_config mqtt_conf;
 	int result;
 
 	mqtt_get_config_defaults(&mqtt_conf);
@@ -792,9 +794,10 @@ static void configure_mqtt(void)
 }
 
 //SETUP FOR EXTERNAL BUTTON INTERRUPT --> Bootloader request
+struct extint_chan_conf config_extint_chan;
 void configure_extint_channel(void)
 {
-    struct extint_chan_conf config_extint_chan;
+   // struct extint_chan_conf config_extint_chan;
     extint_chan_get_config_defaults(&config_extint_chan);
     config_extint_chan.gpio_pin           = BUTTON_0_EIC_PIN;
     config_extint_chan.gpio_pin_mux       = BUTTON_0_EIC_MUX;
@@ -827,6 +830,17 @@ void extint_detection_callback(void)
 
 /***************************************************************************/
 
+
+/**
+* NVM CONFIGURATION
+*/
+void configure_nvm(void)
+{
+	nvm_get_config_defaults(&nvm_cfg);	
+	nvm_cfg.manual_page_write = false;
+	nvm_set_config(&nvm_cfg);
+}
+
 /* 
 * CHECK BOOT MODE 
 */ 
@@ -837,20 +851,20 @@ int check_boot_mode()
 	
 	uint32_t app_check_address;
 	uint32_t *app_check_address_ptr;
+	
 	uint32_t otafu_check_address;
-	uint32_t *otafu_check_address_ptr;
+	uint8_t *otafu_check_address_ptr;
 	uint32_t ver_check_address;
-	uint32_t *ver_check_address_ptr;
+	uint8_t *ver_check_address_ptr;
 	
 	app_check_address = APP_START_ADDRESS;
 	app_check_address_ptr = (uint32_t *)app_check_address;
 
 	otafu_check_address = OTAFU_ADDRESS;
-	otafu_check_address_ptr = (uint32_t *)otafu_check_address;
+	otafu_check_address_ptr = (uint8_t *)otafu_check_address;
 	
 	ver_check_address = VERSION_ADDRESS;
-	ver_check_address_ptr = (uint32_t *)ver_check_address;
-	
+	ver_check_address_ptr = (uint8_t *)ver_check_address;
 	
 
 	if (isPressed == true)						// Button is pressed, run bootloader
@@ -883,15 +897,19 @@ int check_boot_mode()
 
 
 /* 
-* DEINITIALIZE HARDWARE 
+* DEINITIALIZE HARDWARE & PERIPHERALS
 */
 void disable_peripherals()
 {
 	printf("disable peripherals: Deinitializing peripherals ..... \n\r");
-	
+
 	cpu_irq_disable();
-	disable_console();
+	http_client_deinit(&http_client_module_inst);
+	mqtt_deinit(&mqtt_inst);
+	nm_bsp_deinit();
 	sd_deinit();
+	extint_disable_events(&config_extint_chan);
+	disable_console();
 }
 
 
@@ -947,7 +965,8 @@ int sd_card_to_nvm_copy()
 	sprintf(str21, "NVM_VER = %u\n\r", (uint8_t)nvm_version_num);
 	printf("%s",str21);
 	
-	if((((uint8_t) nvm_version_num != 255) && ((uint8_t)sd_version_num[0] > (uint8_t)nvm_version_num)) || ((uint8_t) nvm_version_num == 255))   ///<changed here
+	//if((((uint8_t) nvm_version_num != 255) && ((uint8_t)sd_version_num[0] > (uint8_t)nvm_version_num)) || ((uint8_t) nvm_version_num == 255))   ///<changed here
+	if ((nvm_version_num == 255) || (nvm_version_num < sd_version_num1))
 	{
 		printf("sd_card_to_nvm_copy: Version Different, Writing new code ..... \n\r");
 	}
@@ -968,7 +987,6 @@ int sd_card_to_nvm_copy()
 	if (res1 != FR_OK)
 		{
 			printf("sd operation: >> Opening a file failed\n\r");
-			//goto BOOT_CHECK;
 			return 1;
 		}
 	printf("sd operation: >> File open success\n\r");
@@ -1070,6 +1088,11 @@ int sd_card_to_nvm_copy()
 
 	delay_s(1);
 	
+	uint32_t *ptr = (uint32_t*) VERSION_ADDRESS;	
+	*ptr = 55;
+	
+	uint32_t wir = *((uint32_t*) VERSION_ADDRESS);
+	
 	if(crc_mem == crc_mem1)
 	{
 		do
@@ -1102,7 +1125,34 @@ int otafu_download()
 	printf("otafu_download: Downloading update version ..... \n\r");
 	///< download version & compare
 	///> jump out to check other conditions
-	///> download crc and new firmware 
+	
+	///> download crc and new firmware
+	/*
+	//DOWNLOAD A FILE
+	do_download_flag = true;
+
+	// Initialize socket module.
+	socketInit();
+	// Register socket callback function. 
+	registerSocketCallback(socket_cb, resolve_cb);
+
+	// Connect to router. 
+	printf("main: connecting to WiFi AP %s...\r\n", (char *)MAIN_WLAN_SSID);
+	m2m_wifi_connect((char *)MAIN_WLAN_SSID, sizeof(MAIN_WLAN_SSID), MAIN_WLAN_AUTH, (char *)MAIN_WLAN_PSK, M2M_WIFI_CH_ALL);
+
+	while (!(is_state_set(COMPLETED) || is_state_set(CANCELED))) {
+		// Handle pending events from network controller. 
+		m2m_wifi_handle_events(NULL);
+		// Checks the timer timeout. 
+		sw_timer_task(&swt_module_inst);
+	}
+	printf("main: please unplug the SD/MMC card.\r\n");
+	printf("main: done.\r\n");
+
+	//Disable socket for HTTP Transfer
+	socketDeinit();
+	*/
+
 	///> compare crc and confirm
 	///> earse otafu nvm 	
 }
@@ -1133,9 +1183,7 @@ int main(void)
 	configure_extint_channel();			/*Initialize BUTTON 0 as an external interrupt*/
 	configure_extint_callbacks();
 
-	nvm_get_config_defaults(&nvm_cfg);
-	nvm_cfg.manual_page_write = false;
-	nvm_set_config(&nvm_cfg);
+	configure_nvm();					/*Initialize NVM */
 
 	memset((uint8_t *)&param, 0, sizeof(tstrWifiInitParam));		/* Initialize Wi-Fi parameters structure. */
 
@@ -1155,6 +1203,7 @@ int main(void)
 
 	printf("\n\rmain: >> Board and peripherals initialized\n\r");
 	printf("\n\r");
+	
 	/** INITIALIZATION COMPLETE */	
 	
 
@@ -1162,6 +1211,9 @@ int main(void)
 	delay_s(1);
 	printf("\n\rmain: Booting up ..... \n\r");
 
+	//otafu_download();
+
+	
 	while(1)
 	{
 		if (check_boot_mode() == 1)
@@ -1184,7 +1236,7 @@ int main(void)
 			jump_to_app();
 	}
 
-
+	
 	
 	/*
 	//DOWNLOAD A FILE
