@@ -588,6 +588,9 @@ void disable_console()
 void sd_deinit();
 //////////////////////////////////////////
 
+void 
+
+
 /**
  * \brief Configure Timer module.
  */
@@ -904,11 +907,12 @@ void disable_peripherals()
 	printf("disable peripherals: Deinitializing peripherals ..... \n\r");
 
 	cpu_irq_disable();
-	http_client_deinit(&http_client_module_inst);
-	mqtt_deinit(&mqtt_inst);
-	nm_bsp_deinit();
+	//http_client_deinit(&http_client_module_inst);
+	//mqtt_deinit(&mqtt_inst);
+	//nm_bsp_deinit();
 	sd_deinit();
-	extint_disable_events(&config_extint_chan);
+	//extint_disable_events(&config_extint_chan);
+	//diable_timer();
 	disable_console();
 }
 
@@ -918,10 +922,11 @@ void disable_peripherals()
 */ 
 static void jump_to_app(void)
 {
+	disable_peripherals();
 	
 	printf("jump_to_app: Jumping to Application ..... \n\r");
 	
-	disable_peripherals();
+	
 	
 	/// Function pointer to application section
 	void (*applicationCodeEntry)(void);
