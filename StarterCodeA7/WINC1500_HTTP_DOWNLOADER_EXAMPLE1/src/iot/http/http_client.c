@@ -140,8 +140,8 @@ static struct http_client_module *module_ref_inst[TCP_SOCK_MAX] = {NULL,};
 
 void http_client_get_config_defaults(struct http_client_config *const config)
 {
-	config->port = 80;
-	config->tls = 0;
+	config->port = 443;
+	config->tls = 1;
 	config->timeout = 20000;
 	config->timer_inst = NULL;
 	config->recv_buffer = NULL;

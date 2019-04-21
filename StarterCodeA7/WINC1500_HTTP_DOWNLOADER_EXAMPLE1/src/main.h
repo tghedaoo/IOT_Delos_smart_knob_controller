@@ -40,8 +40,10 @@ extern "C" {
 
 /** Wi-Fi AP Settings. */
 #define MAIN_WLAN_SSID                       "AirPennNet-Device" /**< Destination SSID */
+//#define MAIN_WLAN_SSID                       "4012ludlow-2" /**< Destination SSID */
 #define MAIN_WLAN_AUTH                       M2M_WIFI_SEC_WPA_PSK /**< Security manner */
 #define MAIN_WLAN_PSK                        "penn1740wifi" /**< Password for Destination SSID */
+//#define MAIN_WLAN_PSK                        "californiarepublic" /**< Password for Destination SSID */
 
 /** IP address parsing. */
 #define IPV4_BYTE(val, index)                ((val >> (index * 8)) & 0xFF)

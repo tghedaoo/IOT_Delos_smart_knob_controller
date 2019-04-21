@@ -62,7 +62,7 @@ static inline void delay_cycles(
 		SysTick->LOAD = n;
 		SysTick->VAL = 0;
 
-		while (!(SysTick->CTRL & SysTick_CTRL_COUNTFLAG_Msk)) {
+			while (!(SysTick->CTRL & SysTick_CTRL_COUNTFLAG_Msk)) {
 		};
 	}
 }

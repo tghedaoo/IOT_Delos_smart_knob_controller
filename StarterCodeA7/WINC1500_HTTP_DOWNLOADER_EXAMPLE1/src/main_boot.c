@@ -11,6 +11,7 @@
 #include "crc32.h"
 #include "nvm.h"
 #include "sd_mmc_spi.h"
+#include "delay.h"
 #include <string.h>
 
 
@@ -79,6 +80,7 @@ bool otafu_flag = false;
 
 char test_file_name[] = "0:Firmware.bin";
 char ver_file_name[] = "0:Version.txt";
+char crc_file_name[] = "0:Crc.txt";
 
 FRESULT res1;
 
@@ -588,7 +590,7 @@ void disable_console()
 void sd_deinit();
 //////////////////////////////////////////
 
-void 
+ 
 
 
 /**
@@ -904,16 +906,18 @@ int check_boot_mode()
 */
 void disable_peripherals()
 {
-	printf("disable peripherals: Deinitializing peripherals ..... \n\r");
+	printf("disable peripherals: Deinitializing peripherals and jumping to app..... \n\r");
 
-	cpu_irq_disable();
+	system_interrupt_disable_global();
+	disable_console();
+	sd_deinit();
 	//http_client_deinit(&http_client_module_inst);
 	//mqtt_deinit(&mqtt_inst);
 	//nm_bsp_deinit();
-	sd_deinit();
+	
 	//extint_disable_events(&config_extint_chan);
 	//diable_timer();
-	disable_console();
+	
 }
 
 
@@ -924,23 +928,21 @@ static void jump_to_app(void)
 {
 	disable_peripherals();
 	
-	printf("jump_to_app: Jumping to Application ..... \n\r");
-	
-	
-	
 	/// Function pointer to application section
 	void (*applicationCodeEntry)(void);
+	
 	/// Rebase stack pointer
 	__set_MSP(*(uint32_t *) APP_START_ADDRESS);
+	
 	/// Rebase vector table
 	SCB->VTOR = ((uint32_t) APP_START_ADDRESS & SCB_VTOR_TBLOFF_Msk);
+	
 	/// Set pointer to application section
-	applicationCodeEntry =
-	(void (*)(void))(unsigned *)(*(unsigned *)(APP_START_RESET_VEC_ADDRESS));
-
+	applicationCodeEntry = (void (*)(void))(unsigned *)(*(unsigned *)(APP_START_RESET_VEC_ADDRESS));
+	
 	/// Jump to application
 	applicationCodeEntry();
-}
+}	
 
 /* 
 * ALL SD CARD OPERATIONS 
@@ -1092,12 +1094,7 @@ int sd_card_to_nvm_copy()
 	printf("%s",str2);
 
 	delay_s(1);
-	
-	uint32_t *ptr = (uint32_t*) VERSION_ADDRESS;	
-	*ptr = 55;
-	
-	uint32_t wir = *((uint32_t*) VERSION_ADDRESS);
-	
+
 	if(crc_mem == crc_mem1)
 	{
 		do
@@ -1122,17 +1119,50 @@ int sd_card_to_nvm_copy()
 	}
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////
 /* 
-* OTA NEW FIRMWARE AND METADATA DOWNLOAD 
+* OTA NEW FIRMWARE AND METADATA DOWNLOAD > This should be in App code
+* This is to be done when SW0 and OTAFU button on cloud is pressed (Firmware update request buttons)
+* Services Firmware Update request
 */
-int otafu_download()
+
+// Version Check > If actually the firmware is to be downloaded or not
+int otafu_version_check()
 {
-	printf("otafu_download: Downloading update version ..... \n\r");
-	///< download version & compare
-	///> jump out to check other conditions
+	printf("otafu_version_check: Checking for new Version ...... \n\r");
 	
-	///> download crc and new firmware
+	// 1. Erase Version.txt file from SD card
+	ver_file_name[0] = LUN_ID_SD_MMC_0_MEM + '0';
+	FRESULT ret f_unlink((char const *)ver_file_name); 
+
+	if(ret == FR_OK)
+		printf("yes\n\r");
+	
+	// 2. Download new Version.txt into SD card
+	// 3. Read Version from text file (New)
+	// 4. Read Version from NVM (Old)	
+	// 4. If New Version > Old Version -> return version number
+	// 5. Else return 0 	
+	return 1;
+}
+
+// Firmware Download > Download the new firmware file and also its crc for successful download verification
+int otafu_firmware_download()
+{
+	printf("otafu_firmware_download: Downloading new firmware ...... \n\r");
+	// 1. Erase Firmware.bin file from SD card
+	// 2. Erase crc_new.txt file from SD card
+	// 3. Download Firmware.bin into SD card
+	// 4. Download crc_new.txt into SD card
+	// 5. crc check on Firmware.bin file in the SD card
+	// 6. Compare crc with crc from the crc_new.txt
+	// 7. If same return 1
+	// 8. Else return 0.
+
+	return 1;
+
 	/*
+
 	//DOWNLOAD A FILE
 	do_download_flag = true;
 
@@ -1151,16 +1181,67 @@ int otafu_download()
 		// Checks the timer timeout. 
 		sw_timer_task(&swt_module_inst);
 	}
-	printf("main: please unplug the SD/MMC card.\r\n");
-	printf("main: done.\r\n");
+	printf("otafu_download: >> New Firmware File Downloaded\r\n");
 
 	//Disable socket for HTTP Transfer
 	socketDeinit();
 	*/
 
-	///> compare crc and confirm
-	///> earse otafu nvm 	
+
 }
+
+
+/** 
+************************ MAIN OTAFU LOGIC *****************************
+*/ 
+int otafu_download()
+{
+	int new_ver_num = 0;
+	char user_reponse;
+	int download_attempts = 0;
+
+	printf("otafu_download: Downloading update version ..... \n\r");
+ 	
+ 	if( (new_ver_num = otafu_version_check()) == 0)
+ 	{
+ 		printf("otafu_download: >> Resuming application\n\r");
+ 		return 0;
+ 	}
+ 	
+ 	printf("otafu_download: New Firmware Available, version: %d \n\r",new_ver_num);
+ 	
+ 	USER_INPUT:
+ 	
+ 	printf("Would you like to download the new version: (y/n) > ");
+ 	scanf("%c",&user_reponse);
+ 	printf("%c\n\r",user_reponse);
+	 
+ 	if (user_reponse == 'n')
+ 	{
+ 		printf("otafu_download: >> Resuming application\n\r");
+ 		return 0;
+ 	}
+ 	else if (user_reponse == 'y')
+ 	{
+ 		for (download_attempts = 0;download_attempts < 3;download_attempts++)
+ 		{
+ 			if (otafu_firmware_download() == 0)
+ 				printf("Downloading failed, trying again ..... \n\r");
+ 			else
+ 				return 1;
+ 		}	
+ 		printf("otafu_download: >> Downloading failed even after multiple attempts\n\r");
+ 		printf("otafu_download: >> Resuming application for now\n\r");
+ 		return 0;
+ 	}
+	else
+	{
+		printf("invalid response, please try again\n\r");
+		goto USER_INPUT;
+	}
+}
+/////////////////////////////////////////////////////////////////////////////
+
 
 /////////////////////////////////////////////////////////////////////////////
 ///* ...... MAIN ........ *
@@ -1183,16 +1264,22 @@ int main(void)
 	configure_http_client();			/* Initialize the HTTP client service. */
 	configure_mqtt();					/* Initialize the MQTT service. */
 	nm_bsp_init();						/* Initialize the BSP. */
-	init_storage();						/* Initialize SD/MMC storage. */
 	
-	configure_extint_channel();			/*Initialize BUTTON 0 as an external interrupt*/
+	
+	init_storage();							/* Initialize SD/MMC storage. */
+	
+	configure_extint_channel();				/*Initialize BUTTON 0 as an external interrupt*/
 	configure_extint_callbacks();
 
-	configure_nvm();					/*Initialize NVM */
+	configure_nvm();						/*Initialize NVM */
+	
 
-	memset((uint8_t *)&param, 0, sizeof(tstrWifiInitParam));		/* Initialize Wi-Fi parameters structure. */
+	//system_interrupt_enable_global();		///< Remove this if BSP is uncommented
 
-	param.pfAppWifiCb = wifi_cb;									/* Initialize Wi-Fi driver with data and status callbacks. */
+	
+	memset((uint8_t *)&param, 0, sizeof(tstrWifiInitParam));		// Initialize Wi-Fi parameters structure. 
+
+	param.pfAppWifiCb = wifi_cb;									// Initialize Wi-Fi driver with data and status callbacks. 
 	ret = m2m_wifi_init(&param);
 	if (M2M_SUCCESS != ret) 
 	{
@@ -1205,61 +1292,47 @@ int main(void)
 		puts("ERR>> Systick configuration error\r\n");
 		while (1);
 	}
-
+	
 	printf("\n\rmain: >> Board and peripherals initialized\n\r");
-	printf("\n\r");
 	
 	/** INITIALIZATION COMPLETE */	
 	
 
 	/** ----------------BOOTLAODER CODE---------------------*/
 	delay_s(1);
-	printf("\n\rmain: Booting up ..... \n\r");
+	printf("main: Booting up ..... \n\r");
 
-	//otafu_download();
-
-	
-	while(1)
+	/* Test Section for OTAFU */ 
+	if(otafu_download() == 0)  // When the MQTT subscriber says its on or SW0 pressed (both in app running state) 
 	{
-		if (check_boot_mode() == 1)
-		{
-			printf("main: Starting Application ..... \n\r");
-			jump_to_app();
-		}
-	
-		// OTAFU request check 
-		if (otafu_flag == true)
-		{
-			printf("main: Checking OTA updates ..... \n\r");
-			otafu_download();
-			printf("main: >> New firmware downloaded\n\r");	
-			otafu_flag = false;
-		}
-
-		// SD card operation
-		if(sd_card_to_nvm_copy() != 1)		
-			jump_to_app();
+		// continue application
 	}
+	else
+	{
+		// 1. write otafu_flag in nvm
+		// 2. jump to bootloader // SW reset
+	}
+	/* Test section end */
 
-	
-	
+
+	///////////////////////////////////////////////////////////////////////////////////////////
 	/*
 	//DOWNLOAD A FILE
 	do_download_flag = true;
 
-	/* Initialize socket module. 
+	// Initialize socket module. 
 	socketInit();
-	/* Register socket callback function. 
+	// Register socket callback function. 
 	registerSocketCallback(socket_cb, resolve_cb);
 
-	/* Connect to router. 
+	// Connect to router. 
 	printf("main: connecting to WiFi AP %s...\r\n", (char *)MAIN_WLAN_SSID);
 	m2m_wifi_connect((char *)MAIN_WLAN_SSID, sizeof(MAIN_WLAN_SSID), MAIN_WLAN_AUTH, (char *)MAIN_WLAN_PSK, M2M_WIFI_CH_ALL);
 
 	while (!(is_state_set(COMPLETED) || is_state_set(CANCELED))) {
-		/* Handle pending events from network controller. 
+		// Handle pending events from network controller. 
 		m2m_wifi_handle_events(NULL);
-		/* Checks the timer timeout. 
+		// Checks the timer timeout. 
 		sw_timer_task(&swt_module_inst);
 	}
 	printf("main: please unplug the SD/MMC card.\r\n");
@@ -1271,20 +1344,19 @@ int main(void)
 	delay_s(1);
 	
 	//CONNECT TO MQTT BROKER
-	do_download_flag = false;    /** Flag false indicating that mqtt broker to be contacted 
+	do_download_flag = false;    // Flag false indicating that mqtt broker to be contacted 
 	
 	//Re-enable socket for MQTT Transfer
 	socketInit();
 	registerSocketCallback(socket_event_handler, socket_resolve_handler);
 
-		/* Connect to router. 
+		// Connect to router. 
 	
 	if (mqtt_connect(&mqtt_inst, main_mqtt_broker))
 	{
 		printf("Error connecting to MQTT Broker!\r\n");
 	}
-	*/
-	/*
+
 	while (1) {
 
 		//Handle pending events from network controller.
@@ -1304,8 +1376,27 @@ int main(void)
 
 	}
 	*/
+	//////////////////////////////////////////////////////////////////////////////////
 	
+	while(1)
+	{
+		if (check_boot_mode() == 1)
+		{
+			printf("main: Starting Application ..... \n\r");
+			jump_to_app();
+		}
 	
-	
+		// OTAFU request check 
+		if (otafu_flag == true)
+		{
+			printf("main: OTA Firmware detected ..... \n\r");
+			// write nvm otafu flag to 0xFF
+			otafu_flag = false;
+		}
+
+		// SD card operation
+		if(sd_card_to_nvm_copy() != 1)		
+			jump_to_app();
+	}	
 	return 0;
 }
