@@ -231,6 +231,7 @@ C_SRCS +=  \
 ../src/ASF/thirdparty/pahomqtt/MQTTPacket/MQTTSubscribeServer.c \
 ../src/ASF/thirdparty/pahomqtt/MQTTPacket/MQTTUnsubscribeClient.c \
 ../src/ASF/thirdparty/pahomqtt/MQTTPacket/MQTTUnsubscribeServer.c \
+../src/cli.c \
 ../src/iot/http/http_client.c \
 ../src/iot/stream_writer.c \
 ../src/iot/sw_timer.c \
@@ -311,6 +312,7 @@ src/ASF/thirdparty/pahomqtt/MQTTPacket/MQTTSubscribeClient.o \
 src/ASF/thirdparty/pahomqtt/MQTTPacket/MQTTSubscribeServer.o \
 src/ASF/thirdparty/pahomqtt/MQTTPacket/MQTTUnsubscribeClient.o \
 src/ASF/thirdparty/pahomqtt/MQTTPacket/MQTTUnsubscribeServer.o \
+src/cli.o \
 src/iot/http/http_client.o \
 src/iot/stream_writer.o \
 src/iot/sw_timer.o \
@@ -384,6 +386,7 @@ src/ASF/thirdparty/pahomqtt/MQTTPacket/MQTTSubscribeClient.o \
 src/ASF/thirdparty/pahomqtt/MQTTPacket/MQTTSubscribeServer.o \
 src/ASF/thirdparty/pahomqtt/MQTTPacket/MQTTUnsubscribeClient.o \
 src/ASF/thirdparty/pahomqtt/MQTTPacket/MQTTUnsubscribeServer.o \
+src/cli.o \
 src/iot/http/http_client.o \
 src/iot/stream_writer.o \
 src/iot/sw_timer.o \
@@ -457,6 +460,7 @@ src/ASF/thirdparty/pahomqtt/MQTTPacket/MQTTSubscribeClient.d \
 src/ASF/thirdparty/pahomqtt/MQTTPacket/MQTTSubscribeServer.d \
 src/ASF/thirdparty/pahomqtt/MQTTPacket/MQTTUnsubscribeClient.d \
 src/ASF/thirdparty/pahomqtt/MQTTPacket/MQTTUnsubscribeServer.d \
+src/cli.d \
 src/iot/http/http_client.d \
 src/iot/stream_writer.d \
 src/iot/sw_timer.d \
@@ -530,6 +534,7 @@ src/ASF/thirdparty/pahomqtt/MQTTPacket/MQTTSubscribeClient.d \
 src/ASF/thirdparty/pahomqtt/MQTTPacket/MQTTSubscribeServer.d \
 src/ASF/thirdparty/pahomqtt/MQTTPacket/MQTTUnsubscribeClient.d \
 src/ASF/thirdparty/pahomqtt/MQTTPacket/MQTTUnsubscribeServer.d \
+src/cli.d \
 src/iot/http/http_client.d \
 src/iot/stream_writer.d \
 src/iot/sw_timer.d \
@@ -1013,6 +1018,13 @@ src/ASF/thirdparty/pahomqtt/MQTTPacket/MQTTUnsubscribeClient.o: ../src/ASF/third
 	
 
 src/ASF/thirdparty/pahomqtt/MQTTPacket/MQTTUnsubscribeServer.o: ../src/ASF/thirdparty/pahomqtt/MQTTPacket/MQTTUnsubscribeServer.c
+	@echo Building file: $<
+	@echo Invoking: ARM/GNU C Compiler : 6.3.1
+	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\arm\arm-gnu-toolchain\bin\arm-none-eabi-gcc.exe$(QUOTE)  -x c -mthumb -D__SAMD21G18A__ -DDEBUG -DSD_MMC_ENABLE -DBOARD=SAMW25_XPLAINED_PRO -D__SAMD21G18A__ -DEXTINT_CALLBACK_MODE=true -DTCC_ASYNC=true -DARM_MATH_CM0PLUS=true -DSPI_CALLBACK_MODE=true -DUSART_CALLBACK_MODE=true -DRTC_CALENDAR_ASYNC=true -DSYSTICK_MODE -DMQTT_PLATFORM_WINC15x0  -I"../src/iot/http" -I"../src" -I"../src/iot" -I"../src/ASF/common/components/wifi/winc1500" -I"../src/ASF/sam0/drivers/port" -I"../src/ASF/sam0/utils" -I"../src/ASF/sam0/utils/header_files" -I"../src/ASF/sam0/utils/preprocessor" -I"../src/ASF/thirdparty/CMSIS/Include" -I"../src/ASF/thirdparty/CMSIS/Lib/GCC" -I"../src/ASF/common/utils" -I"../src/ASF/sam0/utils/cmsis/samd21/include" -I"../src/ASF/sam0/utils/cmsis/samd21/source" -I"../src/ASF/sam0/drivers/system/pinmux" -I"../src/ASF/sam0/drivers/sercom/spi" -I"../src/ASF/sam0/drivers/sercom" -I"../src/ASF/sam0/drivers/system" -I"../src/ASF/sam0/drivers/system/clock/clock_samd21_r21_da_ha1" -I"../src/ASF/sam0/drivers/system/clock" -I"../src/ASF/sam0/drivers/system/interrupt" -I"../src/ASF/sam0/drivers/system/interrupt/system_interrupt_samd21" -I"../src/ASF/sam0/drivers/system/power" -I"../src/ASF/sam0/drivers/system/power/power_sam_d_r_h" -I"../src/ASF/sam0/drivers/system/reset" -I"../src/ASF/sam0/drivers/system/reset/reset_sam_d_r_h" -I"../src/ASF/common2/services/delay" -I"../src/ASF/common2/services/delay/sam0" -I"../src/ASF/sam0/drivers/extint" -I"../src/ASF/sam0/drivers/tcc" -I"../src/ASF/sam0/drivers/rtc" -I"../src/ASF/sam0/utils/stdio/stdio_serial" -I"../src/ASF/common/services/serial" -I"../src/ASF/sam0/drivers/sercom/usart" -I"../src/ASF/common2/components/memory/sd_mmc" -I"../src/ASF/common/services/storage/ctrl_access" -I"../src/ASF/thirdparty/fatfs/fatfs-r0.09/src" -I"../src/ASF/thirdparty/fatfs/fatfs-port-r0.09/sam0" -I"../src/ASF/sam0/boards" -I"../src/ASF/sam0/boards/samw25_xplained_pro" -I"../src/ASF/common/boards" -I"../src/ASF/common/components/wifi/winc1500/http_downloader_example/samd21g18a_samw25_xplained_pro" -I"../src/config" -I"../src/ASF/thirdparty/pahomqtt" -I"../src/ASF/thirdparty/pahomqtt/MQTTPacket" -I"../src/ASF/thirdparty/pahomqtt/MQTTClient/Platforms" -I"../src/ASF/thirdparty/pahomqtt/MQTTClient/Wrapper" -I"../src/ASF/sam0/drivers/nvm" -I"../src/ASF/common/services/crc32"  -O1 -fdata-sections -ffunction-sections -mlong-calls -g3 -Wall -mcpu=cortex-m0plus -c -pipe -fno-strict-aliasing -Wall -Wstrict-prototypes -Wmissing-prototypes -Werror-implicit-function-declaration -Wpointer-arith -std=gnu99 -ffunction-sections -fdata-sections -Wchar-subscripts -Wcomment -Wformat=2 -Wimplicit-int -Wmain -Wparentheses -Wsequence-point -Wreturn-type -Wswitch -Wtrigraphs -Wunused -Wuninitialized -Wunknown-pragmas -Wfloat-equal -Wundef -Wshadow -Wbad-function-cast -Wwrite-strings -Wsign-compare -Waggregate-return  -Wmissing-declarations -Wformat -Wmissing-format-attribute -Wno-deprecated-declarations -Wpacked -Wredundant-decls -Wnested-externs -Wlong-long -Wunreachable-code -Wcast-align --param max-inline-insns-single=500 -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 
+	@echo Finished building: $<
+	
+
+src/cli.o: ../src/cli.c
 	@echo Building file: $<
 	@echo Invoking: ARM/GNU C Compiler : 6.3.1
 	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\arm\arm-gnu-toolchain\bin\arm-none-eabi-gcc.exe$(QUOTE)  -x c -mthumb -D__SAMD21G18A__ -DDEBUG -DSD_MMC_ENABLE -DBOARD=SAMW25_XPLAINED_PRO -D__SAMD21G18A__ -DEXTINT_CALLBACK_MODE=true -DTCC_ASYNC=true -DARM_MATH_CM0PLUS=true -DSPI_CALLBACK_MODE=true -DUSART_CALLBACK_MODE=true -DRTC_CALENDAR_ASYNC=true -DSYSTICK_MODE -DMQTT_PLATFORM_WINC15x0  -I"../src/iot/http" -I"../src" -I"../src/iot" -I"../src/ASF/common/components/wifi/winc1500" -I"../src/ASF/sam0/drivers/port" -I"../src/ASF/sam0/utils" -I"../src/ASF/sam0/utils/header_files" -I"../src/ASF/sam0/utils/preprocessor" -I"../src/ASF/thirdparty/CMSIS/Include" -I"../src/ASF/thirdparty/CMSIS/Lib/GCC" -I"../src/ASF/common/utils" -I"../src/ASF/sam0/utils/cmsis/samd21/include" -I"../src/ASF/sam0/utils/cmsis/samd21/source" -I"../src/ASF/sam0/drivers/system/pinmux" -I"../src/ASF/sam0/drivers/sercom/spi" -I"../src/ASF/sam0/drivers/sercom" -I"../src/ASF/sam0/drivers/system" -I"../src/ASF/sam0/drivers/system/clock/clock_samd21_r21_da_ha1" -I"../src/ASF/sam0/drivers/system/clock" -I"../src/ASF/sam0/drivers/system/interrupt" -I"../src/ASF/sam0/drivers/system/interrupt/system_interrupt_samd21" -I"../src/ASF/sam0/drivers/system/power" -I"../src/ASF/sam0/drivers/system/power/power_sam_d_r_h" -I"../src/ASF/sam0/drivers/system/reset" -I"../src/ASF/sam0/drivers/system/reset/reset_sam_d_r_h" -I"../src/ASF/common2/services/delay" -I"../src/ASF/common2/services/delay/sam0" -I"../src/ASF/sam0/drivers/extint" -I"../src/ASF/sam0/drivers/tcc" -I"../src/ASF/sam0/drivers/rtc" -I"../src/ASF/sam0/utils/stdio/stdio_serial" -I"../src/ASF/common/services/serial" -I"../src/ASF/sam0/drivers/sercom/usart" -I"../src/ASF/common2/components/memory/sd_mmc" -I"../src/ASF/common/services/storage/ctrl_access" -I"../src/ASF/thirdparty/fatfs/fatfs-r0.09/src" -I"../src/ASF/thirdparty/fatfs/fatfs-port-r0.09/sam0" -I"../src/ASF/sam0/boards" -I"../src/ASF/sam0/boards/samw25_xplained_pro" -I"../src/ASF/common/boards" -I"../src/ASF/common/components/wifi/winc1500/http_downloader_example/samd21g18a_samw25_xplained_pro" -I"../src/config" -I"../src/ASF/thirdparty/pahomqtt" -I"../src/ASF/thirdparty/pahomqtt/MQTTPacket" -I"../src/ASF/thirdparty/pahomqtt/MQTTClient/Platforms" -I"../src/ASF/thirdparty/pahomqtt/MQTTClient/Wrapper" -I"../src/ASF/sam0/drivers/nvm" -I"../src/ASF/common/services/crc32"  -O1 -fdata-sections -ffunction-sections -mlong-calls -g3 -Wall -mcpu=cortex-m0plus -c -pipe -fno-strict-aliasing -Wall -Wstrict-prototypes -Wmissing-prototypes -Werror-implicit-function-declaration -Wpointer-arith -std=gnu99 -ffunction-sections -fdata-sections -Wchar-subscripts -Wcomment -Wformat=2 -Wimplicit-int -Wmain -Wparentheses -Wsequence-point -Wreturn-type -Wswitch -Wtrigraphs -Wunused -Wuninitialized -Wunknown-pragmas -Wfloat-equal -Wundef -Wshadow -Wbad-function-cast -Wwrite-strings -Wsign-compare -Waggregate-return  -Wmissing-declarations -Wformat -Wmissing-format-attribute -Wno-deprecated-declarations -Wpacked -Wredundant-decls -Wnested-externs -Wlong-long -Wunreachable-code -Wcast-align --param max-inline-insns-single=500 -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 

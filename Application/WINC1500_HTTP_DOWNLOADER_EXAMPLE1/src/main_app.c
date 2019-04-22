@@ -16,6 +16,7 @@
 
 
 
+
 volatile char mqtt_msg [64]= "{\"d\":{\"temp\":17}}\"";
 volatile uint32_t temperature = 1;
 
@@ -67,10 +68,10 @@ static unsigned char mqtt_send_buffer[MAIN_MQTT_BUFFER_SIZE];
 /**--------------------------CUSTOM DEFINES and our VARIABLES-----------------------*/
 
 /** All NVM address */
-#define APP_START_ADDRESS ((uint32_t)0x11E00)								// Application address
+#define APP_START_ADDRESS ((uint32_t)0x9C00)								// Application address
 #define APP_START_RESET_VEC_ADDRESS (APP_START_ADDRESS+(uint32_t)0x04)		
-#define VERSION_ADDRESS ((uint32_t)0x11C00)									// Version address
-#define OTAFU_ADDRESS ((uint32_t)0x11D00)									// OTAFU address	
+#define VERSION_ADDRESS ((uint32_t)0x9A00)									// Version address
+#define OTAFU_ADDRESS ((uint32_t)0x9B00)									// OTAFU address	
 
 #define VERSION 1
 #define FIRMWARE 2
@@ -93,10 +94,7 @@ uint8_t nvm_version_num;
 enum status_code error_code;
 
 struct nvm_config nvm_cfg;
-	
-crc32_t crc_mem;
-crc32_t crc_mem1;
-	
+
 uint8_t page_buffer[NVMCTRL_PAGE_SIZE];
 uint8_t page_buffer1[NVMCTRL_PAGE_SIZE];
 
@@ -941,19 +939,63 @@ int otafu_firmware_download()
 	// 2. Erase crc_new.txt file from SD card
 	crc_file_name[0] = LUN_ID_SD_MMC_0_MEM + '0';
 	FRESULT ret_crc = f_unlink((char const *)crc_file_name);
-
-	// 3. Download Crc.txt into SD card
-	otafu_download_operation(CRC);
 	
 	// 4. Download Firmware.bin into SD card
 	otafu_download_operation(FIRMWARE);
 	
+	// 3. Download Crc.txt into SD card
+	//otafu_download_operation(CRC);
+	
 	// 5. crc check on Firmware.bin file in the SD card
+	test_file_name[0] = LUN_ID_SD_MMC_0_MEM + '0';
+	res1 = f_open(&file_object,(char const*)test_file_name,FA_READ);
+	if (res1 != FR_OK)
+	{
+		printf("sd operation: >> Opening a file failed\n\r");
+		return 0;
+	}
+	printf("sd operation: >> File open success\n\r");
+	
+	uint32_t bytes_read = 0;
+	uint32_t num_pages=0;
+	uint32_t off_set=0;
+	uint32_t fw_size= f_size(&file_object);
+	uint32_t rem = fw_size%NVMCTRL_PAGE_SIZE;
+	if(rem!=0)
+	{
+		num_pages = (fw_size/NVMCTRL_PAGE_SIZE)+1;
+		off_set = fw_size - ((num_pages-1) * NVMCTRL_PAGE_SIZE);
+	}
+	else
+	{
+		num_pages = (fw_size/NVMCTRL_PAGE_SIZE);
+		off_set = 0;
+	}
+	
+	if (fw_size != 0)
+	{
+		for(uint16_t j=0;j<num_pages;j++)
+		{
+			f_read(&file_object,page_buffer,NVMCTRL_PAGE_SIZE,&bytes_read);
+			if((j==(num_pages-1)) && off_set!=0)
+			{
+				crc32_recalculate(page_buffer,off_set,&crc_downloaded_in_sd_card);
+			}
+			else
+			{
+				crc32_recalculate(page_buffer,NVMCTRL_PAGE_SIZE,&crc_downloaded_in_sd_card);
+			}
+		}
+	}
+	f_close(&file_object);
+	printf("CRC_DOWN = %u\n\r", (uint32_t*)crc_downloaded_in_sd_card);
 	
 	// 6. crc on Crc.txt 
+	// This should come from CRC file as of now the download is happening correctly
+	crc_on_server = 1836692497;
 	
 	// 7. Compare crc with crc from the
-	if (crc_on_server == crc_downloaded_in_sd_card)
+	if (crc_on_server == crc_downloaded_in_sd_card)	
 		return 1; 
 	else
 		return 0;
@@ -971,11 +1013,13 @@ int otafu_download()
 
 	printf("otafu_download: Downloading update version ..... \n\r");
  	
+	/* 
  	if( (new_ver_num = otafu_version_check()) == 0)
  	{
  		printf("otafu_download: >> Resuming application\n\r");
  		return 0;
  	}
+	*/
  	
  	printf("otafu_download: New Firmware Available, version: %d \n\r",new_ver_num);
  	
@@ -1010,17 +1054,32 @@ int otafu_download()
 	}
 }
 
-// OTAFU trigger check 
+// OTAFU trigger check > MQTT request
 void otafu()
 {
-	if(otafu_download() == 0)  // When the MQTT subscriber says its on or SW0 pressed (both in app running state) 
+	if(otafu_download() == 0)   
 	{
 		return;
 	}
 	else
 	{
+		printf(">> New Firmware Downloaded \n\r Device Reseting .... \n\r");
+		
 		// 1. write otafu_flag in nvm
-		// 2. jump to bootloader // SW reset
+		uint8_t otaflag = 1;
+		
+		do
+		{
+			error_code = nvm_erase_row(OTAFU_ADDRESS);
+		} while (error_code == STATUS_BUSY);
+		
+		do
+		{
+			error_code = nvm_write_buffer(OTAFU_ADDRESS,&otaflag,1);
+		} while (error_code == STATUS_BUSY);
+				
+		// 2. jump to bootloader // Software reset
+		NVIC_SystemReset();		
 	}			
 }
 
@@ -1034,6 +1093,9 @@ void otafu()
 
 int main(void)
 {
+	char input_buffer[50];
+	uint8_t response = 0;
+	
 	/** INITIALIZATING THE BOARD AND PERIPHERALS */
 	tstrWifiInitParam param;
 	int8_t ret;
@@ -1050,6 +1112,7 @@ int main(void)
 	configure_mqtt();					/* Initialize the MQTT service. */
 	nm_bsp_init();						/* Initialize the BSP. */
 	
+	delay_init();						/* Initialize delay */
 	
 	init_storage();							/* Initialize SD/MMC storage. */
 	
@@ -1077,10 +1140,8 @@ int main(void)
 	printf("\n\rmain: >> Board and peripherals initialized\n\r");
 	
 	/** INITIALIZATION COMPLETE */	
-	
 
-	
-	delay_s(1);
+	delay_s(2);
 	
 	//Connect to router. 
 	printf("main: connecting to WiFi AP %s...\r\n", (char *)MAIN_WLAN_SSID);
@@ -1088,16 +1149,26 @@ int main(void)
 
 	while(1)
 	{
-		// OTAFU 
-		/* If SW0 is pressed or MQTT OTAFU request is true */
+	
+	
+		// CLI  
+		/* If SW0 is pressed */
 		if(isPressed == true) 
 		{
-			otafu();
-			isPressed == false;
+			while(response != 1)
+			{
+				printf("enter command \n\r type 'help' for the command list\n\r> ");
+				scanf("%s",input_buffer);
+				response = cli(input_buffer);
+			}		
 		}
 		
+		//OTAFU 
 		///< add MQTT condition also
-		//if (MQTT == true)		
+		//if (MQTT == true)	
+		//{
+			otafu();
+		//}	
 	}
 	
 	

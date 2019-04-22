@@ -2115,6 +2115,9 @@
     <Compile Include="src\ASF\thirdparty\pahomqtt\MQTTPacket\StackTrace.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="src\cli.c">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\iot\http\http_client.c">
       <SubType>compile</SubType>
     </Compile>

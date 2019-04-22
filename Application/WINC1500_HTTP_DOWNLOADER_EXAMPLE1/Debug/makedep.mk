@@ -136,6 +136,8 @@ src\ASF\thirdparty\pahomqtt\MQTTPacket\MQTTUnsubscribeClient.c
 
 src\ASF\thirdparty\pahomqtt\MQTTPacket\MQTTUnsubscribeServer.c
 
+src\cli.c
+
 src\iot\http\http_client.c
 
 src\iot\stream_writer.c

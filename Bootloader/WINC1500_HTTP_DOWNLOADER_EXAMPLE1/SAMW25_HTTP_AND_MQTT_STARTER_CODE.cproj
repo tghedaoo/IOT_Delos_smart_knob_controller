@@ -26,7 +26,7 @@
     <OverrideVtorValue>exception_table</OverrideVtorValue>
     <BootSegment>2</BootSegment>
     <ResetRule>0</ResetRule>
-    <eraseonlaunchrule>0</eraseonlaunchrule>
+    <eraseonlaunchrule>1</eraseonlaunchrule>
     <EraseKey />
     <AsfFrameworkConfig>
       <framework-data>
@@ -918,14 +918,6 @@
     <Folder Include="src\ASF\sam0\drivers\system\power\power_sam_d_r_h\" />
     <Folder Include="src\ASF\sam0\drivers\system\reset\" />
     <Folder Include="src\ASF\sam0\drivers\system\reset\reset_sam_d_r_h\" />
-    <Folder Include="src\ASF\sam0\drivers\tcc\" />
-    <Folder Include="src\ASF\sam0\drivers\tcc\quick_start\" />
-    <Folder Include="src\ASF\sam0\drivers\tcc\quick_start_buffering\" />
-    <Folder Include="src\ASF\sam0\drivers\tcc\quick_start_callback\" />
-    <Folder Include="src\ASF\sam0\drivers\tcc\quick_start_dma\" />
-    <Folder Include="src\ASF\sam0\drivers\tcc\quick_start_faultn\" />
-    <Folder Include="src\ASF\sam0\drivers\tcc\quick_start_faultx\" />
-    <Folder Include="src\ASF\sam0\drivers\tcc\quick_start_timer\" />
     <Folder Include="src\ASF\sam0\utils\" />
     <Folder Include="src\ASF\sam0\utils\cmsis\" />
     <Folder Include="src\ASF\sam0\utils\cmsis\samd21\" />
@@ -965,8 +957,6 @@
     <Folder Include="src\ASF\thirdparty\pahomqtt\MQTTClient\Wrapper\" />
     <Folder Include="src\ASF\thirdparty\pahomqtt\MQTTPacket\" />
     <Folder Include="src\config\" />
-    <Folder Include="src\iot\" />
-    <Folder Include="src\iot\http\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="src\asf.h">
@@ -1026,9 +1016,6 @@
     <None Include="src\ASF\sam0\utils\cmsis\samd21\include\instance\pac0.h">
       <SubType>compile</SubType>
     </None>
-    <None Include="src\ASF\sam0\drivers\tcc\tcc.h">
-      <SubType>compile</SubType>
-    </None>
     <None Include="src\ASF\common\components\wifi\winc1500\bsp\include\nm_bsp.h">
       <SubType>compile</SubType>
     </None>
@@ -1081,9 +1068,6 @@
       <SubType>compile</SubType>
     </None>
     <None Include="src\ASF\sam0\utils\cmsis\samd21\include\pio\samd21g18au.h">
-      <SubType>compile</SubType>
-    </None>
-    <None Include="src\ASF\sam0\drivers\tcc\tcc_callback.h">
       <SubType>compile</SubType>
     </None>
     <None Include="src\ASF\sam0\drivers\extint\extint.h">
@@ -1332,9 +1316,6 @@
     <None Include="src\ASF\sam0\drivers\system\pinmux\pinmux.h">
       <SubType>compile</SubType>
     </None>
-    <None Include="src\ASF\sam0\drivers\tcc\quick_start_faultx\qs_tcc_faultx.h">
-      <SubType>compile</SubType>
-    </None>
     <None Include="src\ASF\thirdparty\fatfs\fatfs-r0.09\src\diskio.h">
       <SubType>compile</SubType>
     </None>
@@ -1377,12 +1358,6 @@
     <None Include="src\ASF\sam0\utils\cmsis\samd21\include\samd21e18a.h">
       <SubType>compile</SubType>
     </None>
-    <None Include="src\ASF\sam0\drivers\tcc\quick_start_dma\qs_tcc_dma.h">
-      <SubType>compile</SubType>
-    </None>
-    <None Include="src\ASF\sam0\drivers\tcc\quick_start_timer\qs_tcc_timer.h">
-      <SubType>compile</SubType>
-    </None>
     <None Include="src\ASF\sam0\utils\cmsis\samd21\include\samd21e16l.h">
       <SubType>compile</SubType>
     </None>
@@ -1393,9 +1368,6 @@
       <SubType>compile</SubType>
     </None>
     <None Include="src\ASF\sam0\utils\cmsis\samd21\include\samd21e17a.h">
-      <SubType>compile</SubType>
-    </None>
-    <None Include="src\ASF\sam0\drivers\tcc\quick_start_callback\qs_tcc_callback.h">
       <SubType>compile</SubType>
     </None>
     <None Include="src\ASF\sam0\utils\cmsis\samd21\include\samd21e15a.h">
@@ -1413,16 +1385,7 @@
     <None Include="src\ASF\common2\services\delay\sam0\systick_counter.h">
       <SubType>compile</SubType>
     </None>
-    <None Include="src\iot\stream_writer.h">
-      <SubType>compile</SubType>
-    </None>
-    <None Include="src\iot\http\http_header.h">
-      <SubType>compile</SubType>
-    </None>
     <None Include="src\ASF\common\components\wifi\winc1500\common\include\nm_common.h">
-      <SubType>compile</SubType>
-    </None>
-    <None Include="src\ASF\sam0\drivers\tcc\quick_start_buffering\qs_tcc_buffering.h">
       <SubType>compile</SubType>
     </None>
     <None Include="src\ASF\sam0\utils\cmsis\samd21\include\instance\sysctrl.h">
@@ -1521,9 +1484,6 @@
     <None Include="src\ASF\sam0\utils\cmsis\samd21\include\instance\port.h">
       <SubType>compile</SubType>
     </None>
-    <None Include="src\iot\http\http_client.h">
-      <SubType>compile</SubType>
-    </None>
     <None Include="src\ASF\common\components\wifi\winc1500\bus_wrapper\include\nm_bus_wrapper.h">
       <SubType>compile</SubType>
     </None>
@@ -1543,9 +1503,6 @@
       <SubType>compile</SubType>
     </None>
     <None Include="src\ASF\common\components\wifi\winc1500\socket\include\socket.h">
-      <SubType>compile</SubType>
-    </None>
-    <None Include="src\iot\http\http_entity.h">
       <SubType>compile</SubType>
     </None>
     <None Include="src\ASF\sam0\utils\cmsis\samd21\include\samd21g17au.h">
@@ -1674,16 +1631,10 @@
     <None Include="src\ASF\sam0\utils\cmsis\samd21\include\component\sercom.h">
       <SubType>compile</SubType>
     </None>
-    <None Include="src\ASF\sam0\drivers\tcc\quick_start_faultn\qs_tcc_faultn.h">
-      <SubType>compile</SubType>
-    </None>
     <None Include="src\ASF\thirdparty\fatfs\fatfs-r0.09\src\ff.h">
       <SubType>compile</SubType>
     </None>
     <None Include="src\ASF\sam0\utils\cmsis\samd21\include\component\dsu.h">
-      <SubType>compile</SubType>
-    </None>
-    <None Include="src\ASF\sam0\drivers\tcc\quick_start\qs_tcc_basic.h">
       <SubType>compile</SubType>
     </None>
     <None Include="src\ASF\sam0\utils\cmsis\samd21\include\instance\nvmctrl.h">
@@ -1726,9 +1677,6 @@
       <SubType>compile</SubType>
     </None>
     <None Include="src\ASF\sam0\utils\cmsis\samd21\include\pio\samd21e16bu.h">
-      <SubType>compile</SubType>
-    </None>
-    <None Include="src\iot\sw_timer.h">
       <SubType>compile</SubType>
     </None>
     <None Include="src\ASF\sam0\utils\cmsis\samd21\include\instance\sercom2.h">
@@ -2007,12 +1955,6 @@
     <Compile Include="src\ASF\sam0\drivers\system\system.c">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="src\ASF\sam0\drivers\tcc\tcc.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\ASF\sam0\drivers\tcc\tcc_callback.c">
-      <SubType>compile</SubType>
-    </Compile>
     <Compile Include="src\ASF\sam0\utils\cmsis\samd21\source\gcc\startup_samd21.c">
       <SubType>compile</SubType>
     </Compile>
@@ -2113,15 +2055,6 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\ASF\thirdparty\pahomqtt\MQTTPacket\StackTrace.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\iot\http\http_client.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\iot\stream_writer.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\iot\sw_timer.c">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\main_boot.c">

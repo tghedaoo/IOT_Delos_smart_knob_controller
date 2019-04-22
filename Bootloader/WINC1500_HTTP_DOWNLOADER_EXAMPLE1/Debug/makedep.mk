@@ -88,10 +88,6 @@ src\ASF\sam0\drivers\system\pinmux\pinmux.c
 
 src\ASF\sam0\drivers\system\system.c
 
-src\ASF\sam0\drivers\tcc\tcc.c
-
-src\ASF\sam0\drivers\tcc\tcc_callback.c
-
 src\ASF\sam0\utils\cmsis\samd21\source\gcc\startup_samd21.c
 
 src\ASF\sam0\utils\cmsis\samd21\source\system_samd21.c
@@ -135,12 +131,6 @@ src\ASF\thirdparty\pahomqtt\MQTTPacket\MQTTSubscribeServer.c
 src\ASF\thirdparty\pahomqtt\MQTTPacket\MQTTUnsubscribeClient.c
 
 src\ASF\thirdparty\pahomqtt\MQTTPacket\MQTTUnsubscribeServer.c
-
-src\iot\http\http_client.c
-
-src\iot\stream_writer.c
-
-src\iot\sw_timer.c
 
 src\main_boot.c
 

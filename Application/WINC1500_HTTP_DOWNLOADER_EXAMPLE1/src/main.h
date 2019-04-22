@@ -104,6 +104,9 @@ typedef enum {
  */
 static const char main_mqtt_broker[] = "m16.cloudmqtt.com";
 
+// CLI FUNCTIONALITY
+int cli(char* input);
+
 
 
 #ifdef __cplusplus

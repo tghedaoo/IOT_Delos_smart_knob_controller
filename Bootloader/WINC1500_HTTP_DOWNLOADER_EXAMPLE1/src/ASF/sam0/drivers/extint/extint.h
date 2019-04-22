@@ -431,6 +431,7 @@ void extint_chan_set_config(
 		const uint8_t channel,
 		const struct extint_chan_conf *const config);
 
+void disable_extinter(void);
 /** @} */
 
 /** \name Configuration and Initialization (NMI)

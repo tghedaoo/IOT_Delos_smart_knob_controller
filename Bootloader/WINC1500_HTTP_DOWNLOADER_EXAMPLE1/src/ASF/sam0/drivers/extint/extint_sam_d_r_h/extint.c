@@ -69,6 +69,11 @@ struct _extint_module _extint_dev;
 static void _extint_enable(void);
 static void _extint_disable(void);
 
+
+void disable_extinter(void)
+{
+	_extint_disable();
+}
 /**
  * \brief Determines if the hardware module(s) are currently synchronizing to the bus.
  *
