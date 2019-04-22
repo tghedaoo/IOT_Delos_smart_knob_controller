@@ -236,7 +236,7 @@ void disable_peripherals()
 	
  	disable_console();
  	sd_deinit();
-// 	
+	
 // 	extint_unregister_callback(extint_detection_callback, BUTTON_0_EIC_LINE, EXTINT_CALLBACK_TYPE_DETECT);
 // 	extint_chan_disable_callback(BUTTON_0_EIC_LINE,EXTINT_CALLBACK_TYPE_DETECT);
 // 	disable_extinter();
@@ -445,54 +445,54 @@ int main(void)
 	
 	init_storage();							/* Initialize SD/MMC storage. */
 	
-	//configure_extint_channel();				/*Initialize BUTTON 0 as an external interrupt*/
-	//configure_extint_callbacks();
+	configure_extint_channel();				/*Initialize BUTTON 0 as an external interrupt*/
+	configure_extint_callbacks();
 
 	configure_nvm();						/*Initialize NVM */
 	
 	system_interrupt_enable_global();		
 
-	//printf("\n\rmain: >> Board and peripherals initialized\n\r");
+	printf("\n\rmain: >> Board and peripherals initialized\n\r");
 	
 	/** INITIALIZATION COMPLETE */	
 
 	
 	//////////////////////////////////////////////////////////////////////////////////
 	/** ----------------BOOTLAODER CODE---------------------*/
-	jump_to_app();
+	//jump_to_app(); // test
 	
-// 	while(1)
-// 	{
-// 		printf("main: Selecting Bootmode (Press button to force boot) \n\r");
-// 		delay_s(2);
-// 		if (check_boot_mode() == 1)
-// 		{
-// 			printf("main: >> Application present \n\r");
-// 			jump_to_app();
-// 		}
-// 		
-// 		// OTAFU request check 
-// 		if (otafu_flag == true)
-// 		{
-// 			printf("main: OTA Firmware detected ..... \n\r");
-// 			nvm_otafu_flag = 255;
-// 			
-// 			do
-// 			{
-// 				error_code = nvm_erase_row(OTAFU_ADDRESS);
-// 			} while (error_code == STATUS_BUSY);
-// 			
-// 			do
-// 			{
-// 				error_code = nvm_write_buffer(OTAFU_ADDRESS,&nvm_otafu_flag,1);
-// 			} while (error_code == STATUS_BUSY);
-// 			
-// 			otafu_flag = false;
-// 		}
-// 
-// 		// SD card operation
-// 		if(sd_card_to_nvm_copy() != 1)		
-// 			jump_to_app();
-// 	}	
+	while(1)
+	{
+		printf("main: Selecting Bootmode (Press button to force boot) \n\r");
+		delay_s(2);
+		if (check_boot_mode() == 1)
+		{
+			printf("main: >> Application present \n\r");
+			jump_to_app();
+		}
+		
+		// OTAFU request check 
+		if (otafu_flag == true)
+		{
+			printf("main: OTA Firmware detected ..... \n\r");
+			nvm_otafu_flag = 255;
+			
+			do
+			{
+				error_code = nvm_erase_row(OTAFU_ADDRESS);
+			} while (error_code == STATUS_BUSY);
+			
+			do
+			{
+				error_code = nvm_write_buffer(OTAFU_ADDRESS,&nvm_otafu_flag,1);
+			} while (error_code == STATUS_BUSY);
+			
+			otafu_flag = false;
+		}
+
+		// SD card operation
+		if(sd_card_to_nvm_copy() != 1)		
+			jump_to_app();
+	}	
 	return 0;	
 }
