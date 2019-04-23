@@ -84,19 +84,24 @@ typedef enum {
 #define MAIN_CHAT_USER_NAME_SIZE 64
 
 /* Chat MQTT topic. */
-#define TEMPERATURE_TOPIC	"TempData"
-#define LED_TOPIC			"LedData"
+#define TEMP_TOPIC	"TEMP"
+#define KNOB_TOPIC	"KNOB"
+#define TIME_TOPIC	"TIME"
+#define START_TOPIC	"START"
+#define OTAFU_TOPIC	"OTAFU"
 
-#define LED_TOPIC_LED_OFF	 "false"
-#define LED_TOPIC_LED_ON	 "true"
+#define START_TOPIC_OFF	 "false"
+#define START_TOPIC_ON	 "true"
+#define TIME_MIN 10
+#define KNOB_MIN 10
 
 //Cloud MQTT User
-#define CLOUDMQTT_USER_ID	"gwvnvncf"
+#define CLOUDMQTT_USER_ID	"mxcdipyh"
 
 //Cloud MQTT pASSWORD
-#define CLOUDMQTT_USER_PASSWORD	"k3UrofTDLgDK"
+#define CLOUDMQTT_USER_PASSWORD	"K8VRHv_eyK7n"
 
-#define CLOUDMQTT_PORT		11411
+#define CLOUDMQTT_PORT	11038
 
 /*
  * A MQTT broker server which was connected.

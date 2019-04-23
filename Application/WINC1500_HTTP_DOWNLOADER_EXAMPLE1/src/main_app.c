@@ -98,6 +98,12 @@ struct nvm_config nvm_cfg;
 uint8_t page_buffer[NVMCTRL_PAGE_SIZE];
 uint8_t page_buffer1[NVMCTRL_PAGE_SIZE];
 
+int KNOB_VALUE = 0;
+int TIME_VALUE = 0;
+bool START_BUTTON = false;
+int BUTTON_CNT = 0;
+bool OTAFU_REQ = false;
+
 /**-----------------------------------------------------------------------------------------------*/
 
 /*HTPP RELATED STATIOC FUNCTIONS*/
@@ -668,20 +674,46 @@ void SubscribeHandler(MessageData *msgData)
 	/* Print Topic and message */
 	printf("\r\n %.*s",msgData->topicName->lenstring.len,msgData->topicName->lenstring.data);
 	printf(" >> ");
-	printf("%.*s",msgData->message->payloadlen,(char *)msgData->message->payload);	
+	printf("%.*s",msgData->message->payloadlen,(char *)msgData->message->payload);
 
-	//Handle LedData message
-	if(strncmp((char *) msgData->topicName->lenstring.data, LED_TOPIC, msgData->message->payloadlen) == 0)
+	//Handle Start button
+	if(strncmp((char *) msgData->topicName->lenstring.data, START_TOPIC	, msgData->message->payloadlen) == 0)
 	{
-		if(strncmp((char *)msgData->message->payload, LED_TOPIC_LED_OFF, msgData->message->payloadlen) == 0)
+		BUTTON_CNT++;
+		if(BUTTON_CNT == 1)
 		{
-			port_pin_set_output_level(LED_0_PIN, LED_0_INACTIVE);
-		} 
-		else if (strncmp((char *)msgData->message->payload, LED_TOPIC_LED_ON, msgData->message->payloadlen) == 0)
+			START_BUTTON = true;
+			printf("\n Cooking started");
+		}
+		if(BUTTON_CNT == 2)
 		{
-			port_pin_set_output_level(LED_0_PIN, LED_0_ACTIVE);
+			START_BUTTON = false;
+			BUTTON_CNT = 0;
+			printf("\n Cooking stopped");
 		}
 	}
+
+	//Handle Knob Value
+	if(strncmp((char *) msgData->topicName->lenstring.data, KNOB_TOPIC	, msgData->message->payloadlen) == 0)
+	{
+		KNOB_VALUE = atoi(msgData->message->payload);
+		printf("\n Knob level set to:%d",KNOB_VALUE);
+	}
+	
+	//Handle Time Value
+	if(strncmp((char *) msgData->topicName->lenstring.data, TIME_TOPIC	, msgData->message->payloadlen) == 0)
+	{
+		TIME_VALUE = atoi(msgData->message->payload);
+		printf("\n Time level set to:%d",TIME_VALUE);
+	}
+	
+	//Handle OTAFU Request
+	if(strncmp((char *) msgData->topicName->lenstring.data, OTAFU_TOPIC	, msgData->message->payloadlen) == 0)
+	{
+		OTAFU_REQ = true;
+		printf("\nOTAFU Requested");
+	}
+	return;
 }
 
 
@@ -728,8 +760,11 @@ static void mqtt_callback(struct mqtt_module *module_inst, int type, union mqtt_
 	case MQTT_CALLBACK_CONNECTED:
 		if (data->connected.result == MQTT_CONN_RESULT_ACCEPT) {
 			/* Subscribe chat topic. */
-			mqtt_subscribe(module_inst, TEMPERATURE_TOPIC, 2, SubscribeHandler);
-			mqtt_subscribe(module_inst, LED_TOPIC, 2, SubscribeHandler);
+			mqtt_subscribe(module_inst, TEMP_TOPIC, 2, SubscribeHandler);
+			mqtt_subscribe(module_inst, START_TOPIC, 2, SubscribeHandler);
+			mqtt_subscribe(module_inst, KNOB_TOPIC, 2, SubscribeHandler);
+			mqtt_subscribe(module_inst, TIME_TOPIC, 2, SubscribeHandler);
+			mqtt_subscribe(module_inst, OTAFU_TOPIC, 2, SubscribeHandler);
 			/* Enable USART receiving callback. */
 			
 			printf("MQTT Connected\r\n");
@@ -854,7 +889,6 @@ int otafu_download_operation(int file_type)
 		desired_url = "https://www.seas.upenn.edu/~tghedaoo/Crc.txt";	
 	}
 	
-
 	//DOWNLOAD A FILE
 	do_download_flag = true;
 
@@ -864,19 +898,19 @@ int otafu_download_operation(int file_type)
 	registerSocketCallback(socket_cb, resolve_cb);
 
 	//Connect to router. 
-	//printf("main: connecting to WiFi AP %s...\r\n", (char *)MAIN_WLAN_SSID);
-	//m2m_wifi_connect((char *)MAIN_WLAN_SSID, sizeof(MAIN_WLAN_SSID), MAIN_WLAN_AUTH, (char *)MAIN_WLAN_PSK, M2M_WIFI_CH_ALL);
-
-	while (!(is_state_set(COMPLETED) || is_state_set(CANCELED))) {
+// 	printf("main: connecting to WiFi AP %s...\r\n", (char *)MAIN_WLAN_SSID);
+// 	m2m_wifi_connect((char *)MAIN_WLAN_SSID, sizeof(MAIN_WLAN_SSID), MAIN_WLAN_AUTH, (char *)MAIN_WLAN_PSK, M2M_WIFI_CH_ALL);	
+// 	 
+	start_download();
+	
+	while (!(is_state_set(COMPLETED) || is_state_set(CANCELED))) 
+	{
 		// Handle pending events from network controller. 
 		m2m_wifi_handle_events(NULL);
 		// Checks the timer timeout. 
 		sw_timer_task(&swt_module_inst);
 	}
-	
-	clear_state(COMPLETED);
-	clear_state(CANCELED);
-	
+
 	//Disable socket for HTTP Transfer
 	socketDeinit();
 }
@@ -992,7 +1026,8 @@ int otafu_firmware_download()
 	
 	// 6. crc on Crc.txt 
 	// This should come from CRC file as of now the download is happening correctly
-	crc_on_server = 1836692497;
+	crc_on_server = 1535712251;
+	printf("CRC_SERVER = %u\n\r", (uint32_t*)crc_on_server);
 	
 	// 7. Compare crc with crc from the
 	if (crc_on_server == crc_downloaded_in_sd_card)	
@@ -1013,14 +1048,12 @@ int otafu_download()
 
 	printf("otafu_download: Downloading update version ..... \n\r");
  	
-	/* 
- 	if( (new_ver_num = otafu_version_check()) == 0)
- 	{
- 		printf("otafu_download: >> Resuming application\n\r");
- 		return 0;
- 	}
-	*/
- 	
+//  	if( (new_ver_num = otafu_version_check()) == 0)
+//  	{
+//  		printf("otafu_download: >> Resuming application\n\r");
+//  		return 0;
+//  	}
+		
  	printf("otafu_download: New Firmware Available, version: %d \n\r",new_ver_num);
  	
  	USER_INPUT:
@@ -1094,7 +1127,7 @@ void otafu()
 int main(void)
 {
 	char input_buffer[50];
-	uint8_t response = 0;
+	
 	
 	/** INITIALIZATING THE BOARD AND PERIPHERALS */
 	tstrWifiInitParam param;
@@ -1107,22 +1140,24 @@ int main(void)
 	printf(STRING_HEADER);
 	printf("\r\nmain: Initializing Board and peripherals for application...... \r\n\r\n");
 	
-	configure_timer();					/* Initialize the Timer. */	
-	configure_http_client();			/* Initialize the HTTP client service. */
-	configure_mqtt();					/* Initialize the MQTT service. */
-	nm_bsp_init();						/* Initialize the BSP. */
+//	NVIC_SystemReset();					// Reset testing
 	
-	delay_init();						/* Initialize delay */
-	
-	init_storage();							/* Initialize SD/MMC storage. */
-	
-	configure_extint_channel();				/*Initialize BUTTON 0 as an external interrupt*/
-	configure_extint_callbacks();
-
-	configure_nvm();						/*Initialize NVM */
-
-	memset((uint8_t *)&param, 0, sizeof(tstrWifiInitParam));		// Initialize Wi-Fi parameters structure. 
-
+ 	configure_timer();					/* Initialize the Timer. */	
+ 	configure_http_client();			/* Initialize the HTTP client service. */
+ 	configure_mqtt();					/* Initialize the MQTT service. */
+ 	nm_bsp_init();						/* Initialize the BSP. */
+ 	
+ 	delay_init();						/* Initialize delay */
+ 	
+ 	init_storage();							/* Initialize SD/MMC storage. */
+ 	
+ 	configure_extint_channel();				/*Initialize BUTTON 0 as an external interrupt*/
+ 	configure_extint_callbacks();
+ 
+ 	configure_nvm();						/*Initialize NVM */
+ 
+ 	memset((uint8_t *)&param, 0, sizeof(tstrWifiInitParam));		// Initialize Wi-Fi parameters structure. 
+ 
 	param.pfAppWifiCb = wifi_cb;									// Initialize Wi-Fi driver with data and status callbacks. 
 	ret = m2m_wifi_init(&param);
 	if (M2M_SUCCESS != ret) 
@@ -1143,35 +1178,76 @@ int main(void)
 
 	delay_s(2);
 	
+	//CONNECT TO MQTT BROKER
+	do_download_flag = false;    // Flag false indicating that mqtt broker to be contacted 
+	
+	socketInit();
+	registerSocketCallback(socket_event_handler,socket_resolve_handler);
+	
 	//Connect to router. 
 	printf("main: connecting to WiFi AP %s...\r\n", (char *)MAIN_WLAN_SSID);
 	m2m_wifi_connect((char *)MAIN_WLAN_SSID, sizeof(MAIN_WLAN_SSID), MAIN_WLAN_AUTH, (char *)MAIN_WLAN_PSK, M2M_WIFI_CH_ALL);
-
+ 	
+// 	if (mqtt_connect(&mqtt_inst, main_mqtt_broker))
+// 	{
+// 		printf("Error connecting to MQTT Broker!\r\n");
+// 	}
+ 
 	while(1)
 	{
-	
-	
+		m2m_wifi_handle_events(NULL);
+		sw_timer_task(&swt_module_inst);
+		
+		port_pin_toggle_output_level(LED_0_PIN);
+		delay_ms(200);			
+		
 		// CLI  
 		/* If SW0 is pressed */
 		if(isPressed == true) 
-		{
+		{		
+			uint8_t response = 0;
 			while(response != 1)
 			{
 				printf("enter command \n\r type 'help' for the command list\n\r> ");
 				scanf("%s",input_buffer);
 				response = cli(input_buffer);
 			}		
+			isPressed = false;
+		}
+		 
+		//OTAFU
+		if ((OTAFU_REQ == true)&&(START_BUTTON == false)) 
+		{
+			mqtt_disconnect(&mqtt_inst, main_mqtt_broker);
+			socketDeinit();
+			
+			otafu();
+			OTAFU_REQ = false;
+			
+			do_download_flag = false;
+			socketInit();
+			registerSocketCallback(socket_event_handler,socket_resolve_handler);
+			if (mqtt_connect(&mqtt_inst, main_mqtt_broker))
+			{
+				printf("Error connecting to MQTT Broker!\r\n");
+			}
 		}
 		
-		//OTAFU 
-		///< add MQTT condition also
-		//if (MQTT == true)	
-		//{
-			otafu();
-		//}	
+		//START/STOP OP
+		if(START_BUTTON)
+		{
+			temperature++;
+			if(temperature > 40) temperature = 1;
+			snprintf(mqtt_msg,63,"{\"d\":{\"temp\":%d}}",temperature);
+			mqtt_publish(&mqtt_inst, TEMP_TOPIC, mqtt_msg, strlen(mqtt_msg), 2, 0);
+		}
+
+					//Handle MQTT messages
+					if(mqtt_inst.isConnected)
+					mqtt_yield(&mqtt_inst, 100);		
 	}
 	
-	
+ 	
 
 
 	///////////////////////////////////////////////////////////////////////////////////////////

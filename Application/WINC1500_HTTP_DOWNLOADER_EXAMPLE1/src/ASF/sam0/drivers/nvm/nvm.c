@@ -502,7 +502,6 @@ enum status_code nvm_write_buffer(
 				destination_address, 0);
 #endif
 	}
-
 	return STATUS_OK;
 }
 

@@ -201,12 +201,12 @@ int check_boot_mode()
 		printf("boot mode: >> NO APP AVAILABLE \n\r");
 		return 0;
 	}
-
-	if (*ver_check_address_ptr == 0xFF)			// Even if application is present, version flag is empty
-	{
-		printf("boot mode: >> NO VERSION FLAG \n\r");
-		return 0;
-	}
+	
+// 	if (*ver_check_address_ptr == 0xFF)			// Even if application is present, version flag is empty
+// 	{
+// 		printf("boot mode: >> NO VERSION FLAG \n\r");
+// 		return 0;
+// 	}
 	return 1;
 }
 
@@ -467,7 +467,7 @@ int main(void)
 		delay_s(2);
 		if (check_boot_mode() == 1)
 		{
-			printf("main: >> Application present \n\r");
+			printf("main: >> APP present \n\r");
 			jump_to_app();
 		}
 		
