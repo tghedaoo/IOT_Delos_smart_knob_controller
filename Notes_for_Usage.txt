@@ -1,3 +1,10 @@
-Terminal:
-
+** TERMINAL ** 
 Please use putty, with settings for backspace set to Ctrl+H in the keyboard terminal.
+--------------
+
+** ON SERVER ** 
+update
+1. Version.txt 		(1 char only) 1 digit version (therefore supports only 10 versions)
+2. Crc.txt 		(10 digit decimal crc ouptut - not hex)
+3. Firmware.bin 	(as it is)
+--------------

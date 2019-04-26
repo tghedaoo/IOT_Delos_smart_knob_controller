@@ -27,8 +27,7 @@ static FIL file_object;
 static struct usart_module cdc_uart_module;
 
 /** All NVM address */
-#define APP_START_ADDRESS ((uint32_t)0x9C00)								// Application address
-//#define APP_START_RESET_VEC_ADDRESS (APP_START_ADDRESS+(uint32_t)0x04)		
+#define APP_START_ADDRESS ((uint32_t)0x9C00)								// Application address		
 #define APP_START_RESET_VEC_ADDRESS 0x00009C04
 #define VERSION_ADDRESS ((uint32_t)0x9A00)									// Version address
 #define OTAFU_ADDRESS ((uint32_t)0x9B00)									// OTAFU address	
@@ -237,9 +236,6 @@ void disable_peripherals()
  	disable_console();
  	sd_deinit();
 	
-// 	extint_unregister_callback(extint_detection_callback, BUTTON_0_EIC_LINE, EXTINT_CALLBACK_TYPE_DETECT);
-// 	extint_chan_disable_callback(BUTTON_0_EIC_LINE,EXTINT_CALLBACK_TYPE_DETECT);
-// 	disable_extinter();
 }
 
 

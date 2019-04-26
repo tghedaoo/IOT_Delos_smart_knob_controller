@@ -842,14 +842,12 @@ void configure_extint_callbacks(void)
             EXTINT_CALLBACK_TYPE_DETECT);
 }
 
-
+/** 
+* Checking button press SW0
+*/
 volatile bool isPressed = false;
 void extint_detection_callback(void)
 {
-	//Publish some data after a button press and release. Note: just an example! This is not the most elegant way of doing this!
-	//temperature++;
-	//if (temperature > 40) temperature = 1;
-	//snprintf(mqtt_msg, 63, "{\"d\":{\"temp\":%d}}", temperature);	
 	isPressed = true;
 }
 
@@ -877,6 +875,8 @@ void configure_nvm(void)
 // MAIN HTTP INTERACTION FOR DOWNLOAD
 int otafu_download_operation(int file_type)
 {
+	static http_socket_flag = 0; 
+	
 	if (file_type == VERSION)
 	{
 		desired_url = "https://www.seas.upenn.edu/~tghedaoo/Version.txt";	
@@ -892,16 +892,18 @@ int otafu_download_operation(int file_type)
 	
 	//DOWNLOAD A FILE
 	do_download_flag = true;
+	
+	if(http_socket_flag == 0)
+	{
+		// Initialize socket module.
+		socketInit();
+		// Register socket callback function.
+		registerSocketCallback(socket_cb, resolve_cb);
+		
+		http_socket_flag = 1;	
+	}
 
-	// Initialize socket module.
-	socketInit();
-	// Register socket callback function. 
-	registerSocketCallback(socket_cb, resolve_cb);
-
-	//Connect to router. 
-// 	printf("main: connecting to WiFi AP %s...\r\n", (char *)MAIN_WLAN_SSID);
-// 	m2m_wifi_connect((char *)MAIN_WLAN_SSID, sizeof(MAIN_WLAN_SSID), MAIN_WLAN_AUTH, (char *)MAIN_WLAN_PSK, M2M_WIFI_CH_ALL);	
- 	
+	
 	start_download();
 	
 	
@@ -919,8 +921,7 @@ int otafu_download_operation(int file_type)
 	clear_state(CANCELED);
 	clear_state(DOWNLOADING);
 	
-	//Disable socket for HTTP Transfer
-	socketDeinit();
+	//Disable socket for HTTP Transfer when completely done with the http related operations
 }
 
 
@@ -961,7 +962,7 @@ int otafu_version_check()
 	}
 	else
 	{
-		printf("otafu_version_check: >> Version Same \n\r");
+		printf("otafu_version_check: >> Version Same or Current version is latest\n\r");
 		return 0;
 	}
 }
@@ -970,8 +971,8 @@ int otafu_version_check()
 // Firmware Download > Download the new firmware file and also its crc for successful download verification
 int otafu_firmware_download()
 {
-	int crc_on_server = 0;
-	int crc_downloaded_in_sd_card = 0;
+	uint32_t crc_on_server = 0;
+	uint32_t crc_downloaded_in_sd_card = 0;
 	printf("otafu_firmware_download: Downloading new firmware ...... \n\r");
 	
 	// 1. Erase Firmware.bin file from SD card
@@ -986,7 +987,7 @@ int otafu_firmware_download()
 	otafu_download_operation(FIRMWARE);
 	
 	// 3. Download Crc.txt into SD card
-	//otafu_download_operation(CRC);
+	otafu_download_operation(CRC);
 	
 	// 5. crc check on Firmware.bin file in the SD card
 	test_file_name[0] = LUN_ID_SD_MMC_0_MEM + '0';
@@ -1033,8 +1034,14 @@ int otafu_firmware_download()
 	printf("CRC_DOWN = %u\n\r", (uint32_t*)crc_downloaded_in_sd_card);
 	
 	// 6. crc on Crc.txt 
-	// This should come from CRC file as of now the download is happening correctly
-	crc_on_server = 1535712251;
+	char sd_download_crc[10];
+	
+	crc_file_name[0] = LUN_ID_SD_MMC_0_MEM + '0';
+	FRESULT res_crc = f_open(&file_object,(char const *)crc_file_name,FA_READ);
+	f_gets(sd_download_crc,&file_object.fsize,&file_object);
+	f_close(&file_object);	
+	
+	crc_on_server = atoi(sd_download_crc);
 	printf("CRC_SERVER = %u\n\r", (uint32_t*)crc_on_server);
 	
 	// 7. Compare crc with crc from the
@@ -1059,6 +1066,8 @@ int otafu_download()
  	if( (new_ver_num = otafu_version_check()) == 0)
  	{
  		printf("otafu_download: >> Resuming application\n\r");
+		 //Disable socket for HTTP Transfer
+		 socketDeinit();
  		return 0;
  	}
 		
@@ -1086,6 +1095,8 @@ int otafu_download()
  		}	
  		printf("otafu_download: >> Downloading failed even after multiple attempts\n\r");
  		printf("otafu_download: >> Resuming application for now\n\r");
+		 //Disable socket for HTTP Transfer
+		 socketDeinit();
  		return 0;
  	}
 	else
@@ -1106,6 +1117,9 @@ void otafu()
 	else
 	{
 		printf(">> New Firmware Downloaded \n\r Device Reseting .... \n\r");
+		
+		//Disable socket for HTTP Transfer
+		socketDeinit();
 		
 		// 1. write otafu_flag in nvm
 		uint8_t otaflag = 1;
@@ -1193,12 +1207,7 @@ int main(void)
 	//Connect to router. 
 	printf("main: connecting to WiFi AP %s...\r\n", (char *)MAIN_WLAN_SSID);
 	m2m_wifi_connect((char *)MAIN_WLAN_SSID, sizeof(MAIN_WLAN_SSID), MAIN_WLAN_AUTH, (char *)MAIN_WLAN_PSK, M2M_WIFI_CH_ALL);
- 	
-// 	if (mqtt_connect(&mqtt_inst, main_mqtt_broker))
-// 	{
-// 		printf("Error connecting to MQTT Broker!\r\n");
-// 	}
- 
+ 	 
 	while(1)
 	{
 		m2m_wifi_handle_events(NULL);
@@ -1224,7 +1233,6 @@ int main(void)
 		 
 		//OTAFU
 		if ((OTAFU_REQ == true)&&(START_BUTTON == false))
-		//if(1) 
 		{
 			mqtt_disconnect(&mqtt_inst, main_mqtt_broker);
 			socketDeinit();
@@ -1256,71 +1264,6 @@ int main(void)
 					mqtt_yield(&mqtt_inst, 100);		
 	}
 	
- 	
-
-
-	///////////////////////////////////////////////////////////////////////////////////////////
-	/*
-	//DOWNLOAD A FILE
-	do_download_flag = true;
-
-	// Initialize socket module. 
-	socketInit();
-	// Register socket callback function. 
-	registerSocketCallback(socket_cb, resolve_cb);
-
-	// Connect to router. 
-	printf("main: connecting to WiFi AP %s...\r\n", (char *)MAIN_WLAN_SSID);
-	m2m_wifi_connect((char *)MAIN_WLAN_SSID, sizeof(MAIN_WLAN_SSID), MAIN_WLAN_AUTH, (char *)MAIN_WLAN_PSK, M2M_WIFI_CH_ALL);
-
-	while (!(is_state_set(COMPLETED) || is_state_set(CANCELED))) {
-		// Handle pending events from network controller. 
-		m2m_wifi_handle_events(NULL);
-		// Checks the timer timeout. 
-		sw_timer_task(&swt_module_inst);
-	}
-	printf("main: please unplug the SD/MMC card.\r\n");
-	printf("main: done.\r\n");
-
-	//Disable socket for HTTP Transfer
-	socketDeinit();
-	
-	delay_s(1);
-	
-	//CONNECT TO MQTT BROKER
-	do_download_flag = false;    // Flag false indicating that mqtt broker to be contacted 
-	
-	//Re-enable socket for MQTT Transfer
-	socketInit();
-	registerSocketCallback(socket_event_handler, socket_resolve_handler);
-
-		// Connect to router. 
-	
-	if (mqtt_connect(&mqtt_inst, main_mqtt_broker))
-	{
-		printf("Error connecting to MQTT Broker!\r\n");
-	}
-
-	while (1) {
-
-		//Handle pending events from network controller.
-		m2m_wifi_handle_events(NULL);
-		sw_timer_task(&swt_module_inst);
-
-		if(isPressed)
-		{
-			//Publish updated temperature data
-			mqtt_publish(&mqtt_inst, TEMPERATURE_TOPIC, mqtt_msg, strlen(mqtt_msg), 2, 0);
-			isPressed = false;
-		}
-
-		//Handle MQTT messages
-			if(mqtt_inst.is	)
-			mqtt_yield(&mqtt_inst, 100);
-
-	}
-	
-	*/
-	return 0;
+ 	return 0;
 	
 }

@@ -1,4 +1,0 @@
-Select the 69kb file for 1st app
-Select the 8kb file for 2nd app
-
-rename files to Firmware.bin
