@@ -39,11 +39,15 @@ extern "C" {
 #endif
 
 /** Wi-Fi AP Settings. */
-#define MAIN_WLAN_SSID                       "AirPennNet-Device" /**< Destination SSID */
+//#define MAIN_WLAN_SSID                       "AirPennNet-Device" /**< Destination SSID */
 //#define MAIN_WLAN_SSID                       "4012ludlow-2" /**< Destination SSID */
+#define MAIN_WLAN_SSID					     "TGH1"  /**< Destination SSID */
+
 #define MAIN_WLAN_AUTH                       M2M_WIFI_SEC_WPA_PSK /**< Security manner */
-#define MAIN_WLAN_PSK                        "penn1740wifi" /**< Password for Destination SSID */
+
+//#define MAIN_WLAN_PSK                        "penn1740wifi" /**< Password for Destination SSID */
 //#define MAIN_WLAN_PSK                        "californiarepublic" /**< Password for Destination SSID */
+#define MAIN_WLAN_PSK                        "netwanted" /**< Password for Destination SSID */
 
 /** IP address parsing. */
 #define IPV4_BYTE(val, index)                ((val >> (index * 8)) & 0xFF)
@@ -69,10 +73,6 @@ typedef enum {
 	COMPLETED = 0x10, /*!< Download completed. */
 	CANCELED = 0x20 /*!< Download canceled. */
 } download_state;
-
-
-
-
 
 /* Max size of UART buffer. */
 #define MAIN_CHAT_BUFFER_SIZE 64
@@ -108,11 +108,10 @@ typedef enum {
  * m2m.eclipse.org is public MQTT broker. //< Changed to our cloud broker
  */
 static const char main_mqtt_broker[] = "m16.cloudmqtt.com";
+static struct mqtt_module mqtt_inst;
 
 // CLI FUNCTIONALITY
-int cli(char* input);
-
-
+int cli(volatile char* mqtt_msg);
 
 #ifdef __cplusplus
 }

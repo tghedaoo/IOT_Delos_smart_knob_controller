@@ -80,7 +80,7 @@ extern "C" {
 
 /** SPI clock. */
 #define CONF_WINC_SPI_CLOCK				(12000000)
-
+//#define CONF_WINC_SPI_CLOCK				(10000000)
 /*
    ---------------------------------
    --------- Debug Options ---------

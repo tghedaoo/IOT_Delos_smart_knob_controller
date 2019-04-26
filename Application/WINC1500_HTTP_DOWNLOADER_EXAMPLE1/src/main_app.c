@@ -2,6 +2,7 @@
 #include "asf.h"
 #include "main.h"
 #include "stdio_serial.h"
+//#include "unistd.h"
 #include "driver/include/m2m_wifi.h"
 #include "socket/include/socket.h"
 #include "iot/http/http_client.h"
@@ -58,7 +59,7 @@ struct http_client_module http_client_module_inst;
 char mqtt_user[64] = "Unit1";
 
 /* Instance of MQTT service. */
-static struct mqtt_module mqtt_inst;
+//static struct mqtt_module mqtt_inst;
 
 /* Receive buffer of the MQTT service. */
 static unsigned char mqtt_read_buffer[MAIN_MQTT_BUFFER_SIZE];
@@ -900,8 +901,9 @@ int otafu_download_operation(int file_type)
 	//Connect to router. 
 // 	printf("main: connecting to WiFi AP %s...\r\n", (char *)MAIN_WLAN_SSID);
 // 	m2m_wifi_connect((char *)MAIN_WLAN_SSID, sizeof(MAIN_WLAN_SSID), MAIN_WLAN_AUTH, (char *)MAIN_WLAN_PSK, M2M_WIFI_CH_ALL);	
-// 	 
+ 	
 	start_download();
+	
 	
 	while (!(is_state_set(COMPLETED) || is_state_set(CANCELED))) 
 	{
@@ -910,7 +912,13 @@ int otafu_download_operation(int file_type)
 		// Checks the timer timeout. 
 		sw_timer_task(&swt_module_inst);
 	}
-
+	
+	//Disable all flags pertaining to download
+	clear_state(GET_REQUESTED);
+	clear_state(COMPLETED);
+	clear_state(CANCELED);
+	clear_state(DOWNLOADING);
+	
 	//Disable socket for HTTP Transfer
 	socketDeinit();
 }
@@ -1048,11 +1056,11 @@ int otafu_download()
 
 	printf("otafu_download: Downloading update version ..... \n\r");
  	
-//  	if( (new_ver_num = otafu_version_check()) == 0)
-//  	{
-//  		printf("otafu_download: >> Resuming application\n\r");
-//  		return 0;
-//  	}
+ 	if( (new_ver_num = otafu_version_check()) == 0)
+ 	{
+ 		printf("otafu_download: >> Resuming application\n\r");
+ 		return 0;
+ 	}
 		
  	printf("otafu_download: New Firmware Available, version: %d \n\r",new_ver_num);
  	
@@ -1094,6 +1102,7 @@ void otafu()
 	{
 		return;
 	}
+	
 	else
 	{
 		printf(">> New Firmware Downloaded \n\r Device Reseting .... \n\r");
@@ -1126,9 +1135,6 @@ void otafu()
 
 int main(void)
 {
-	char input_buffer[50];
-	
-	
 	/** INITIALIZATING THE BOARD AND PERIPHERALS */
 	tstrWifiInitParam param;
 	int8_t ret;
@@ -1206,24 +1212,27 @@ int main(void)
 		if(isPressed == true) 
 		{		
 			uint8_t response = 0;
+			printf("CLI command line active \n\r type 'help' for the command list\n\r");
 			while(response != 1)
 			{
-				printf("enter command \n\r type 'help' for the command list\n\r> ");
-				scanf("%s",input_buffer);
-				response = cli(input_buffer);
+				printf("delos_inc > ");
+				response = cli(mqtt_msg);
 			}		
 			isPressed = false;
+			printf("CLI Exited \n\r");
 		}
 		 
 		//OTAFU
-		if ((OTAFU_REQ == true)&&(START_BUTTON == false)) 
+		if ((OTAFU_REQ == true)&&(START_BUTTON == false))
+		//if(1) 
 		{
 			mqtt_disconnect(&mqtt_inst, main_mqtt_broker);
 			socketDeinit();
 			
+			// THE OTAFU OPERATION call
 			otafu();
-			OTAFU_REQ = false;
 			
+			OTAFU_REQ = false;
 			do_download_flag = false;
 			socketInit();
 			registerSocketCallback(socket_event_handler,socket_resolve_handler);
@@ -1306,7 +1315,7 @@ int main(void)
 		}
 
 		//Handle MQTT messages
-			if(mqtt_inst.isConnected)
+			if(mqtt_inst.is	)
 			mqtt_yield(&mqtt_inst, 100);
 
 	}

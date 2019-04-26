@@ -124,6 +124,29 @@ src/cli.d src/cli.o: ../src/cli.c ../src/main.h \
  ../src/ASF/sam0/drivers/sercom/sercom_pinout.h \
  ../src/ASF/sam0/drivers/sercom/sercom_interrupt.h \
  ../src/ASF/sam0/drivers/sercom/sercom.h \
+ ../src/ASF/thirdparty/pahomqtt/MQTTClient/Wrapper/mqtt.h \
+ ../src/ASF/common/components/wifi/winc1500/socket/include/socket.h \
+ ../src/ASF/common/components/wifi/winc1500/common/include/nm_common.h \
+ ../src/ASF/common/components/wifi/winc1500/bsp/include/nm_bsp.h \
+ ../src/ASF/common/components/wifi/winc1500/common/include/nm_debug.h \
+ ../src/ASF/common/components/wifi/winc1500/bsp/include/nm_bsp_internal.h \
+ ../src/ASF/common/components/wifi/winc1500/bsp/include/nm_bsp_samd21.h \
+ ../src/config/conf_winc.h ../src/ASF/common/boards/board.h \
+ ../src/ASF/sam0/boards/samw25_xplained_pro/samw25_xplained_pro.h \
+ ../src/config/conf_board.h \
+ c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-none-eabi\include\math.h \
+ ../src/ASF/common/components/wifi/winc1500/driver/include/m2m_types.h \
+ ../src/ASF/thirdparty/pahomqtt/MQTTClient/Platforms/mqtt_platform.h \
+ ../src/ASF/thirdparty/pahomqtt/MQTTClient/Platforms/MCHP_ATWx.h \
+ ../src/ASF/thirdparty/pahomqtt/MQTTClient/MQTTClient.h \
+ ../src/ASF/thirdparty/pahomqtt/MQTTPacket/MQTTPacket.h \
+ ../src/ASF/thirdparty/pahomqtt/MQTTPacket/MQTTConnect.h \
+ ../src/ASF/thirdparty/pahomqtt/MQTTPacket/MQTTPublish.h \
+ ../src/ASF/thirdparty/pahomqtt/MQTTPacket/MQTTSubscribe.h \
+ ../src/ASF/thirdparty/pahomqtt/MQTTPacket/MQTTUnsubscribe.h \
+ ../src/ASF/thirdparty/pahomqtt/MQTTPacket/MQTTFormat.h \
+ ../src/ASF/thirdparty/pahomqtt/MQTTPacket/StackTrace.h \
+ ../src/ASF/thirdparty/pahomqtt/MQTTPacket/MQTTPacket.h \
  c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-none-eabi\include\string.h \
  c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-none-eabi\include\xlocale.h \
  c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-none-eabi\include\sys\string.h
@@ -381,6 +404,54 @@ c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-no
 ../src/ASF/sam0/drivers/sercom/sercom_interrupt.h:
 
 ../src/ASF/sam0/drivers/sercom/sercom.h:
+
+../src/ASF/thirdparty/pahomqtt/MQTTClient/Wrapper/mqtt.h:
+
+../src/ASF/common/components/wifi/winc1500/socket/include/socket.h:
+
+../src/ASF/common/components/wifi/winc1500/common/include/nm_common.h:
+
+../src/ASF/common/components/wifi/winc1500/bsp/include/nm_bsp.h:
+
+../src/ASF/common/components/wifi/winc1500/common/include/nm_debug.h:
+
+../src/ASF/common/components/wifi/winc1500/bsp/include/nm_bsp_internal.h:
+
+../src/ASF/common/components/wifi/winc1500/bsp/include/nm_bsp_samd21.h:
+
+../src/config/conf_winc.h:
+
+../src/ASF/common/boards/board.h:
+
+../src/ASF/sam0/boards/samw25_xplained_pro/samw25_xplained_pro.h:
+
+../src/config/conf_board.h:
+
+c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-none-eabi\include\math.h:
+
+../src/ASF/common/components/wifi/winc1500/driver/include/m2m_types.h:
+
+../src/ASF/thirdparty/pahomqtt/MQTTClient/Platforms/mqtt_platform.h:
+
+../src/ASF/thirdparty/pahomqtt/MQTTClient/Platforms/MCHP_ATWx.h:
+
+../src/ASF/thirdparty/pahomqtt/MQTTClient/MQTTClient.h:
+
+../src/ASF/thirdparty/pahomqtt/MQTTPacket/MQTTPacket.h:
+
+../src/ASF/thirdparty/pahomqtt/MQTTPacket/MQTTConnect.h:
+
+../src/ASF/thirdparty/pahomqtt/MQTTPacket/MQTTPublish.h:
+
+../src/ASF/thirdparty/pahomqtt/MQTTPacket/MQTTSubscribe.h:
+
+../src/ASF/thirdparty/pahomqtt/MQTTPacket/MQTTUnsubscribe.h:
+
+../src/ASF/thirdparty/pahomqtt/MQTTPacket/MQTTFormat.h:
+
+../src/ASF/thirdparty/pahomqtt/MQTTPacket/StackTrace.h:
+
+../src/ASF/thirdparty/pahomqtt/MQTTPacket/MQTTPacket.h:
 
 c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-none-eabi\include\string.h:
 

@@ -103,7 +103,8 @@ void sw_timer_init(struct sw_timer_module *const module_inst, struct sw_timer_co
 	/* Configure RTT for a 1 second tick interrupt */
 	rtt_sel_source(RTT, false);
 	rtt_init(RTT, OSC_SLCK_32K_XTAL_HZ / (1000 / config->accuracy));
-
+	//rtt_init(RTT, OSC_SLCK_32K_XTAL_HZ / (2000 / config->accuracy));
+	
 	ul_previous_time = rtt_read_timer_value(RTT);
 	while (ul_previous_time == rtt_read_timer_value(RTT)) {
 	}

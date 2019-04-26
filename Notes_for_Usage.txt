@@ -1,0 +1,3 @@
+Terminal:
+
+Please use putty, with settings for backspace set to Ctrl+H in the keyboard terminal.
