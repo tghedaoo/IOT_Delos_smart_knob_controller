@@ -80,13 +80,25 @@ void system_board_init(void);
 
 /** \name SW0 definitions
  *  @{ */
-#define SW0_PIN                   PIN_PB23
+// #define SW0_PIN                   PIN_PB23
+// #define SW0_ACTIVE                false
+// #define SW0_INACTIVE              !SW0_ACTIVE
+// #define SW0_EIC_PIN               PIN_PB23A_EIC_EXTINT7
+// #define SW0_EIC_MUX               MUX_PA23A_EIC_EXTINT7
+// #define SW0_EIC_PINMUX            PINMUX_PA23A_EIC_EXTINT7
+// #define SW0_EIC_LINE              7
+
+//Delos Inc.'s SW0 is PA20 as per the board designed
+
+#define SW0_PIN                   PIN_PA20
 #define SW0_ACTIVE                false
 #define SW0_INACTIVE              !SW0_ACTIVE
-#define SW0_EIC_PIN               PIN_PB23A_EIC_EXTINT7
-#define SW0_EIC_MUX               MUX_PA23A_EIC_EXTINT7
-#define SW0_EIC_PINMUX            PINMUX_PA23A_EIC_EXTINT7
-#define SW0_EIC_LINE              7
+#define SW0_EIC_PIN               PIN_PA20A_EIC_EXTINT4
+#define SW0_EIC_MUX               MUX_PA20A_EIC_EXTINT4
+#define SW0_EIC_PINMUX            PINMUX_PA20A_EIC_EXTINT4
+#define SW0_EIC_LINE              4
+
+
 /** @} */
 
 /**
@@ -244,6 +256,7 @@ void system_board_init(void);
 #define EXT1_SPI_SERCOM_PINMUX_PAD2  PINMUX_PA18C_SERCOM1_PAD2
 #define EXT1_SPI_SERCOM_PINMUX_PAD3  PINMUX_PA19C_SERCOM1_PAD3
 
+
 /** \name Extension header #3 pin definitions
  *  @{
  */
@@ -342,7 +355,7 @@ void system_board_init(void);
 #define EXT3_UART_SERCOM_PINMUX_PAD3  PINMUX_UNUSED
 /** @} */
 
-/** \name Extension header #3 SPI definitions
+/** \name Extension header #3 SPI definitions //This is I think to be used for our SD MMC
  *  @{
  */
 #define EXT3_SPI_MODULE              SERCOM1

@@ -50,15 +50,25 @@
 #define SD_MMC_SPI_MEM_CNT          1
 
 /* Select the SPI module SD/MMC is connected to */
-#ifdef EXT1_SPI_MODULE /* Default configuration for Xplained Pro kit */
-#  define SD_MMC_SPI                 EXT1_SPI_MODULE
-#  define SD_MMC_SPI_PINMUX_SETTING  EXT1_SPI_SERCOM_MUX_SETTING
-#  define SD_MMC_SPI_PINMUX_PAD0     EXT1_SPI_SERCOM_PINMUX_PAD0
-#  define SD_MMC_SPI_PINMUX_PAD1     EXT1_SPI_SERCOM_PINMUX_PAD1
-#  define SD_MMC_SPI_PINMUX_PAD2     EXT1_SPI_SERCOM_PINMUX_PAD2
-#  define SD_MMC_SPI_PINMUX_PAD3     EXT1_SPI_SERCOM_PINMUX_PAD3
+//#ifdef EXT1_SPI_MODULE /* Default configuration for Xplained Pro kit */
+// #  define SD_MMC_SPI                 EXT1_SPI_MODULE
+// #  define SD_MMC_SPI_PINMUX_SETTING  EXT1_SPI_SERCOM_MUX_SETTING
+// #  define SD_MMC_SPI_PINMUX_PAD0     EXT1_SPI_SERCOM_PINMUX_PAD0
+// #  define SD_MMC_SPI_PINMUX_PAD1     EXT1_SPI_SERCOM_PINMUX_PAD1
+// #  define SD_MMC_SPI_PINMUX_PAD2     EXT1_SPI_SERCOM_PINMUX_PAD2
+// #  define SD_MMC_SPI_PINMUX_PAD3     EXT1_SPI_SERCOM_PINMUX_PAD3
+// #  define SD_MMC_CS                  EXT1_PIN_15
 
-#  define SD_MMC_CS                  EXT1_PIN_15
+/* SPI MMC as per Delos Board > Uses Extint 3*/
+#ifdef EXT3_SPI_MODULE /* Default configuration for Xplained Pro kit */
+#  define SD_MMC_SPI                 EXT3_SPI_MODULE
+#  define SD_MMC_SPI_PINMUX_SETTING  EXT3_SPI_SERCOM_MUX_SETTING
+#  define SD_MMC_SPI_PINMUX_PAD0     EXT3_SPI_SERCOM_PINMUX_PAD0
+#  define SD_MMC_SPI_PINMUX_PAD1     EXT3_SPI_SERCOM_PINMUX_PAD1
+#  define SD_MMC_SPI_PINMUX_PAD2     EXT3_SPI_SERCOM_PINMUX_PAD2
+#  define SD_MMC_SPI_PINMUX_PAD3     EXT3_SPI_SERCOM_PINMUX_PAD3
+#  define SD_MMC_CS                  EXT3_PIN_15
+
 
 //#  define SD_MMC_0_CD_GPIO           (EXT1_PIN_10)
 #  define SD_MMC_0_CD_DETECT_VALUE   0

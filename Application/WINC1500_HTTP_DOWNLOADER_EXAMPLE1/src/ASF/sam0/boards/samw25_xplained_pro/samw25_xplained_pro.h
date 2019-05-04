@@ -80,13 +80,25 @@ void system_board_init(void);
 
 /** \name SW0 definitions
  *  @{ */
-#define SW0_PIN                   PIN_PB23
+// #define SW0_PIN                   PIN_PB23
+// #define SW0_ACTIVE                false
+// #define SW0_INACTIVE              !SW0_ACTIVE
+// #define SW0_EIC_PIN               PIN_PB23A_EIC_EXTINT7
+// #define SW0_EIC_MUX               MUX_PA23A_EIC_EXTINT7
+// #define SW0_EIC_PINMUX            PINMUX_PA23A_EIC_EXTINT7
+// #define SW0_EIC_LINE              7
+
+//Delos Inc.'s SW0 is PA20 as per the board designed
+
+#define SW0_PIN                   PIN_PA20
 #define SW0_ACTIVE                false
 #define SW0_INACTIVE              !SW0_ACTIVE
-#define SW0_EIC_PIN               PIN_PB23A_EIC_EXTINT7
-#define SW0_EIC_MUX               MUX_PA23A_EIC_EXTINT7
-#define SW0_EIC_PINMUX            PINMUX_PA23A_EIC_EXTINT7
-#define SW0_EIC_LINE              7
+#define SW0_EIC_PIN               PIN_PA20A_EIC_EXTINT4
+#define SW0_EIC_MUX               MUX_PA20A_EIC_EXTINT4
+#define SW0_EIC_PINMUX            PINMUX_PA20A_EIC_EXTINT4
+#define SW0_EIC_LINE              4
+
+
 /** @} */
 
 /**
