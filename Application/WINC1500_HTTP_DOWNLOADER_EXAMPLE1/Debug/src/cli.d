@@ -1,7 +1,5 @@
 src/cli.d src/cli.o: ../src/cli.c ../src/main.h \
- ../src/ASF/sam0/utils/stdio/stdio_serial/stdio_serial.h \
- ../src/ASF/common/services/serial/serial.h \
- ../src/ASF/common/utils/parts.h ../src/ASF/sam0/utils/status_codes.h \
+ ../src/ASF/thirdparty/pahomqtt/MQTTClient/Wrapper/mqtt.h \
  c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\lib\gcc\arm-none-eabi\6.3.1\include\stdint.h \
  c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-none-eabi\include\stdint.h \
  c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-none-eabi\include\machine\_default_types.h \
@@ -9,9 +7,16 @@ src/cli.d src/cli.o: ../src/cli.c ../src/main.h \
  c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-none-eabi\include\_newlib_version.h \
  c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-none-eabi\include\sys\_intsup.h \
  c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-none-eabi\include\sys\_stdint.h \
- ../src/ASF/common/services/serial/sam0_usart/usart_serial.h \
+ ../src/ASF/common/components/wifi/winc1500/socket/include/socket.h \
+ ../src/ASF/common/components/wifi/winc1500/common/include/nm_common.h \
+ ../src/ASF/common/components/wifi/winc1500/bsp/include/nm_bsp.h \
+ ../src/ASF/common/components/wifi/winc1500/common/include/nm_debug.h \
+ ../src/ASF/common/components/wifi/winc1500/bsp/include/nm_bsp_internal.h \
+ ../src/ASF/common/components/wifi/winc1500/bsp/include/nm_bsp_samd21.h \
+ ../src/config/conf_winc.h ../src/ASF/common/boards/board.h \
  ../src/ASF/sam0/utils/compiler.h \
  c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\lib\gcc\arm-none-eabi\6.3.1\include\stddef.h \
+ ../src/ASF/common/utils/parts.h ../src/ASF/sam0/utils/status_codes.h \
  ../src/ASF/sam0/utils/preprocessor/preprocessor.h \
  ../src/ASF/sam0/utils/preprocessor/tpaste.h \
  ../src/ASF/sam0/utils/preprocessor/stringz.h \
@@ -110,28 +115,6 @@ src/cli.d src/cli.o: ../src/cli.c ../src/main.h \
  c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-none-eabi\include\alloca.h \
  ../src/ASF/common/utils/interrupt.h \
  ../src/ASF/common/utils/interrupt/interrupt_sam_nvic.h \
- ../src/ASF/sam0/drivers/sercom/usart/usart.h \
- ../src/ASF/sam0/drivers/sercom/sercom.h \
- ../src/ASF/sam0/drivers/system/system.h \
- ../src/ASF/sam0/drivers/system/clock/clock.h \
- ../src/ASF/sam0/drivers/system/clock/gclk.h \
- ../src/ASF/sam0/drivers/system/clock/clock_samd21_r21_da_ha1/clock_feature.h \
- ../src/ASF/sam0/drivers/system/pinmux/pinmux.h \
- ../src/ASF/sam0/drivers/system/power/power_sam_d_r_h/power.h \
- ../src/ASF/sam0/drivers/system/reset/reset_sam_d_r_h/reset.h \
- ../src/ASF/sam0/drivers/system/interrupt/system_interrupt.h \
- ../src/ASF/sam0/drivers/system/interrupt/system_interrupt_samd21/system_interrupt_features.h \
- ../src/ASF/sam0/drivers/sercom/sercom_pinout.h \
- ../src/ASF/sam0/drivers/sercom/sercom_interrupt.h \
- ../src/ASF/sam0/drivers/sercom/sercom.h \
- ../src/ASF/thirdparty/pahomqtt/MQTTClient/Wrapper/mqtt.h \
- ../src/ASF/common/components/wifi/winc1500/socket/include/socket.h \
- ../src/ASF/common/components/wifi/winc1500/common/include/nm_common.h \
- ../src/ASF/common/components/wifi/winc1500/bsp/include/nm_bsp.h \
- ../src/ASF/common/components/wifi/winc1500/common/include/nm_debug.h \
- ../src/ASF/common/components/wifi/winc1500/bsp/include/nm_bsp_internal.h \
- ../src/ASF/common/components/wifi/winc1500/bsp/include/nm_bsp_samd21.h \
- ../src/config/conf_winc.h ../src/ASF/common/boards/board.h \
  ../src/ASF/sam0/boards/samw25_xplained_pro/samw25_xplained_pro.h \
  ../src/config/conf_board.h \
  c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-none-eabi\include\math.h \
@@ -147,19 +130,30 @@ src/cli.d src/cli.o: ../src/cli.c ../src/main.h \
  ../src/ASF/thirdparty/pahomqtt/MQTTPacket/MQTTFormat.h \
  ../src/ASF/thirdparty/pahomqtt/MQTTPacket/StackTrace.h \
  ../src/ASF/thirdparty/pahomqtt/MQTTPacket/MQTTPacket.h \
+ ../src/ASF/sam0/utils/stdio/stdio_serial/stdio_serial.h \
+ ../src/ASF/common/services/serial/serial.h \
+ ../src/ASF/common/services/serial/sam0_usart/usart_serial.h \
+ ../src/ASF/sam0/drivers/sercom/usart/usart.h \
+ ../src/ASF/sam0/drivers/sercom/sercom.h \
+ ../src/ASF/sam0/drivers/system/system.h \
+ ../src/ASF/sam0/drivers/system/clock/clock.h \
+ ../src/ASF/sam0/drivers/system/clock/gclk.h \
+ ../src/ASF/sam0/drivers/system/clock/clock_samd21_r21_da_ha1/clock_feature.h \
+ ../src/ASF/sam0/drivers/system/pinmux/pinmux.h \
+ ../src/ASF/sam0/drivers/system/power/power_sam_d_r_h/power.h \
+ ../src/ASF/sam0/drivers/system/reset/reset_sam_d_r_h/reset.h \
+ ../src/ASF/sam0/drivers/system/interrupt/system_interrupt.h \
+ ../src/ASF/sam0/drivers/system/interrupt/system_interrupt_samd21/system_interrupt_features.h \
+ ../src/ASF/sam0/drivers/sercom/sercom_pinout.h \
+ ../src/ASF/sam0/drivers/sercom/sercom_interrupt.h \
+ ../src/ASF/sam0/drivers/sercom/sercom.h \
  c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-none-eabi\include\string.h \
  c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-none-eabi\include\xlocale.h \
  c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-none-eabi\include\sys\string.h
 
 ../src/main.h:
 
-../src/ASF/sam0/utils/stdio/stdio_serial/stdio_serial.h:
-
-../src/ASF/common/services/serial/serial.h:
-
-../src/ASF/common/utils/parts.h:
-
-../src/ASF/sam0/utils/status_codes.h:
+../src/ASF/thirdparty/pahomqtt/MQTTClient/Wrapper/mqtt.h:
 
 c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\lib\gcc\arm-none-eabi\6.3.1\include\stdint.h:
 
@@ -175,11 +169,29 @@ c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-no
 
 c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-none-eabi\include\sys\_stdint.h:
 
-../src/ASF/common/services/serial/sam0_usart/usart_serial.h:
+../src/ASF/common/components/wifi/winc1500/socket/include/socket.h:
+
+../src/ASF/common/components/wifi/winc1500/common/include/nm_common.h:
+
+../src/ASF/common/components/wifi/winc1500/bsp/include/nm_bsp.h:
+
+../src/ASF/common/components/wifi/winc1500/common/include/nm_debug.h:
+
+../src/ASF/common/components/wifi/winc1500/bsp/include/nm_bsp_internal.h:
+
+../src/ASF/common/components/wifi/winc1500/bsp/include/nm_bsp_samd21.h:
+
+../src/config/conf_winc.h:
+
+../src/ASF/common/boards/board.h:
 
 ../src/ASF/sam0/utils/compiler.h:
 
 c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\lib\gcc\arm-none-eabi\6.3.1\include\stddef.h:
+
+../src/ASF/common/utils/parts.h:
+
+../src/ASF/sam0/utils/status_codes.h:
 
 ../src/ASF/sam0/utils/preprocessor/preprocessor.h:
 
@@ -377,52 +389,6 @@ c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-no
 
 ../src/ASF/common/utils/interrupt/interrupt_sam_nvic.h:
 
-../src/ASF/sam0/drivers/sercom/usart/usart.h:
-
-../src/ASF/sam0/drivers/sercom/sercom.h:
-
-../src/ASF/sam0/drivers/system/system.h:
-
-../src/ASF/sam0/drivers/system/clock/clock.h:
-
-../src/ASF/sam0/drivers/system/clock/gclk.h:
-
-../src/ASF/sam0/drivers/system/clock/clock_samd21_r21_da_ha1/clock_feature.h:
-
-../src/ASF/sam0/drivers/system/pinmux/pinmux.h:
-
-../src/ASF/sam0/drivers/system/power/power_sam_d_r_h/power.h:
-
-../src/ASF/sam0/drivers/system/reset/reset_sam_d_r_h/reset.h:
-
-../src/ASF/sam0/drivers/system/interrupt/system_interrupt.h:
-
-../src/ASF/sam0/drivers/system/interrupt/system_interrupt_samd21/system_interrupt_features.h:
-
-../src/ASF/sam0/drivers/sercom/sercom_pinout.h:
-
-../src/ASF/sam0/drivers/sercom/sercom_interrupt.h:
-
-../src/ASF/sam0/drivers/sercom/sercom.h:
-
-../src/ASF/thirdparty/pahomqtt/MQTTClient/Wrapper/mqtt.h:
-
-../src/ASF/common/components/wifi/winc1500/socket/include/socket.h:
-
-../src/ASF/common/components/wifi/winc1500/common/include/nm_common.h:
-
-../src/ASF/common/components/wifi/winc1500/bsp/include/nm_bsp.h:
-
-../src/ASF/common/components/wifi/winc1500/common/include/nm_debug.h:
-
-../src/ASF/common/components/wifi/winc1500/bsp/include/nm_bsp_internal.h:
-
-../src/ASF/common/components/wifi/winc1500/bsp/include/nm_bsp_samd21.h:
-
-../src/config/conf_winc.h:
-
-../src/ASF/common/boards/board.h:
-
 ../src/ASF/sam0/boards/samw25_xplained_pro/samw25_xplained_pro.h:
 
 ../src/config/conf_board.h:
@@ -452,6 +418,40 @@ c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-no
 ../src/ASF/thirdparty/pahomqtt/MQTTPacket/StackTrace.h:
 
 ../src/ASF/thirdparty/pahomqtt/MQTTPacket/MQTTPacket.h:
+
+../src/ASF/sam0/utils/stdio/stdio_serial/stdio_serial.h:
+
+../src/ASF/common/services/serial/serial.h:
+
+../src/ASF/common/services/serial/sam0_usart/usart_serial.h:
+
+../src/ASF/sam0/drivers/sercom/usart/usart.h:
+
+../src/ASF/sam0/drivers/sercom/sercom.h:
+
+../src/ASF/sam0/drivers/system/system.h:
+
+../src/ASF/sam0/drivers/system/clock/clock.h:
+
+../src/ASF/sam0/drivers/system/clock/gclk.h:
+
+../src/ASF/sam0/drivers/system/clock/clock_samd21_r21_da_ha1/clock_feature.h:
+
+../src/ASF/sam0/drivers/system/pinmux/pinmux.h:
+
+../src/ASF/sam0/drivers/system/power/power_sam_d_r_h/power.h:
+
+../src/ASF/sam0/drivers/system/reset/reset_sam_d_r_h/reset.h:
+
+../src/ASF/sam0/drivers/system/interrupt/system_interrupt.h:
+
+../src/ASF/sam0/drivers/system/interrupt/system_interrupt_samd21/system_interrupt_features.h:
+
+../src/ASF/sam0/drivers/sercom/sercom_pinout.h:
+
+../src/ASF/sam0/drivers/sercom/sercom_interrupt.h:
+
+../src/ASF/sam0/drivers/sercom/sercom.h:
 
 c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-none-eabi\include\string.h:
 

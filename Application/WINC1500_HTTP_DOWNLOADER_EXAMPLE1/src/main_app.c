@@ -2,7 +2,6 @@
 #include "asf.h"
 #include "main.h"
 #include "stdio_serial.h"
-//#include "unistd.h"
 #include "driver/include/m2m_wifi.h"
 #include "socket/include/socket.h"
 #include "iot/http/http_client.h"
@@ -1154,28 +1153,31 @@ int main(void)
 	int8_t ret;
 	init_state();
 	
-	system_init();						/* Initialize the board. */	
-	configure_console();				/* Initialize the UART console. */
+	system_init();													/* Initialize the board. */	
+	configure_console();											/* Initialize the UART console. */
 	
 	printf(STRING_HEADER);
 	printf("\r\nmain: Initializing Board and peripherals for application...... \r\n\r\n");
 	
 //	NVIC_SystemReset();					// Reset testing
 	
- 	configure_timer();					/* Initialize the Timer. */	
- 	configure_http_client();			/* Initialize the HTTP client service. */
- 	configure_mqtt();					/* Initialize the MQTT service. */
- 	nm_bsp_init();						/* Initialize the BSP. */
+ 	configure_timer();												/* Initialize the Timer. */	
+ 	configure_http_client();										/* Initialize the HTTP client service. */
+ 	configure_mqtt();												/* Initialize the MQTT service. */
+ 	nm_bsp_init();													/* Initialize the BSP. */
  	
- 	delay_init();						/* Initialize delay */
+ 	delay_init();													/* Initialize delay */
  	
- 	init_storage();							/* Initialize SD/MMC storage. */
+ 	init_storage();													/* Initialize SD/MMC storage. */
  	
- 	configure_extint_channel();				/*Initialize BUTTON 0 as an external interrupt*/
+ 	configure_extint_channel();										/*Initialize BUTTON 0 as an external interrupt*/
  	configure_extint_callbacks();
  
- 	configure_nvm();						/*Initialize NVM */
- 
+ 	configure_nvm();												/*Initialize NVM */										
+	
+	configure_i2c();												/* I2C configuration for camera */
+	configure_i2c_callbacks();
+	
  	memset((uint8_t *)&param, 0, sizeof(tstrWifiInitParam));		// Initialize Wi-Fi parameters structure. 
  
 	param.pfAppWifiCb = wifi_cb;									// Initialize Wi-Fi driver with data and status callbacks. 
@@ -1207,15 +1209,19 @@ int main(void)
 	//Connect to router. 
 	printf("main: connecting to WiFi AP %s...\r\n", (char *)MAIN_WLAN_SSID);
 	m2m_wifi_connect((char *)MAIN_WLAN_SSID, sizeof(MAIN_WLAN_SSID), MAIN_WLAN_AUTH, (char *)MAIN_WLAN_PSK, M2M_WIFI_CH_ALL);
- 	 
+ 	
+	delay_s(1); 
+	 
 	while(1)
 	{
 		m2m_wifi_handle_events(NULL);
 		sw_timer_task(&swt_module_inst);
 		
-		port_pin_toggle_output_level(LED_0_PIN);
+		port_pin_set_output_level(LED_0_PIN,1);
 		delay_ms(200);			
+		port_pin_set_output_level(LED_0_PIN,0);
 		
+
 		// CLI  
 		/* If SW0 is pressed */
 		if(isPressed == true) 
@@ -1253,8 +1259,7 @@ int main(void)
 		//START/STOP OP
 		if(START_BUTTON)
 		{
-			temperature++;
-			if(temperature > 40) temperature = 1;
+			temperature = thercam_read();
 			snprintf(mqtt_msg,63,"{\"d\":{\"temp\":%d}}",temperature);
 			mqtt_publish(&mqtt_inst, TEMP_TOPIC, mqtt_msg, strlen(mqtt_msg), 2, 0);
 		}

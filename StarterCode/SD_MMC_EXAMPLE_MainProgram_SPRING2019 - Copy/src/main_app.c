@@ -77,13 +77,14 @@ struct usart_module cdc_uart_module;
 /** 
 * I2C CALLBACK
 */
+
 /** Function definitions */
 void i2c_write_complete_callback(struct i2c_master_module *const module);
 void configure_i2c(void);
 void configure_i2c_callbacks(void);
 
 //#define DATA_LENGTH 8
-#define DATA_LENGTH 256
+#define DATA_LENGTH 256 /** Pattern of 256 bytes found from the Thermal Camera */
 #define CAMERA_ARRAY_SIZE 64
 
 static uint8_t wr_buffer[DATA_LENGTH] = {
@@ -94,9 +95,8 @@ static uint8_t wr_buffer_reversed[DATA_LENGTH] = {
 	0x07, 0x06, 0x05, 0x04, 0x03, 0x02, 0x01, 0x00
 };
 
+/** The following 2 variables are important */
 static uint8_t rd_buffer[DATA_LENGTH];
-//static uint8_t rd_buffer[CAMERA_ARRAY_SIZE];
-
 #define SLAVE_ADDRESS 0x69
 
 struct i2c_master_packet wr_packet;
@@ -109,9 +109,9 @@ void i2c_write_complete_callback(struct i2c_master_module *const module)
 	i2c_master_read_packet_job(&i2c_master_instance,&rd_packet);
 }
 
+/** Callback after read operation completion */
 void i2c_read_complete_callback(struct i2c_master_module *const module)
 {
-	//i2c_master_read_packet_job(&i2c_master_instance,&rd_packet);
 	SerialConsoleWriteString("Reading complete\n\r");
 }
 
@@ -127,14 +127,13 @@ void configure_i2c(void)
 
 	/* Change buffer timeout to something longer */
 	config_i2c_master.buffer_timeout = 65535; //Check timeout requirements 
-
-// 	#if SAMR30
-// 	config_i2c_master.pinmux_pad0    = CONF_MASTER_SDA_PINMUX;
-// 	config_i2c_master.pinmux_pad1    = CONF_MASTER_SCK_PINMUX;
-// 	#endif
-
-	config_i2c_master.pinmux_pad0    = PINMUX_PA08D_SERCOM2_PAD0; // SDA
-	config_i2c_master.pinmux_pad1    = PINMUX_PA09D_SERCOM2_PAD1; // SCK
+	
+	/** Configurations compatible with SAMW25 and Delos PCB board */
+// 	config_i2c_master.pinmux_pad0    = PINMUX_PA08D_SERCOM2_PAD0; // SDA
+// 	config_i2c_master.pinmux_pad1    = PINMUX_PA09D_SERCOM2_PAD1; // SCK
+	
+	config_i2c_master.pinmux_pad0    = PINMUX_PA08C_SERCOM0_PAD0; // SDA
+	config_i2c_master.pinmux_pad1    = PINMUX_PA09C_SERCOM0_PAD1; // SCK
 
 	/* Initialize and enable device with config */
 	while(i2c_master_init(&i2c_master_instance, CONF_I2C_MASTER_MODULE, &config_i2c_master)     \
@@ -149,9 +148,11 @@ void configure_i2c(void)
 */
 void configure_i2c_callbacks(void)
 {
-	/* Register callback function. */
+	/* Register callback function. > Writing to slave*/
 // 	i2c_master_register_callback(&i2c_master_instance, i2c_write_complete_callback,	I2C_MASTER_CALLBACK_WRITE_COMPLETE);
 // 	i2c_master_enable_callback(&i2c_master_instance,I2C_MASTER_CALLBACK_WRITE_COMPLETE);
+
+	/** Register callback for read from slave (Thercam) operation */
 	i2c_master_register_callback(&i2c_master_instance, i2c_read_complete_callback,	I2C_MASTER_CALLBACK_READ_COMPLETE);
 	i2c_master_enable_callback(&i2c_master_instance,I2C_MASTER_CALLBACK_READ_COMPLETE);
 }
@@ -189,7 +190,6 @@ int main(void)
 	rd_packet.data        = rd_buffer;
 	//! [read_packet]
 	
-	//SerialConsoleWriteString("** I2C Test **\n\r");	
 	i2c_master_read_packet_job(&i2c_master_instance,&rd_packet);
 				
 		char readed[50];
@@ -197,12 +197,25 @@ int main(void)
 		uint8_t camera_buffer[64];
 		for (int i = 0; i < DATA_LENGTH; i++ )
 		{
-			if (i > 64 && rd_packet.data[i] != 0 && i < 225)
+			if (i > 64 && rd_packet.data[i] != 0 && i < 255)
 			{
+				/** The camera buffer gets populated */
 				camera_buffer[j] = rd_packet.data[i];
 				
-				sprintf(readed,"%d      %d     -\n\r", j, camera_buffer[j]);
-				SerialConsoleWriteString(readed);
+				/** The below code is for printing it as an 8x8 array */
+				static uint8_t k = 7;
+				if (k)
+				{
+					sprintf(readed,"%d ",camera_buffer[j]);
+					SerialConsoleWriteString(readed);	
+					k--;
+				}
+				else
+				{
+					sprintf(readed,"%d; \n\r",camera_buffer[j]);
+					SerialConsoleWriteString(readed);
+					k = 7;
+				}
 				
 				j++;
 			}
@@ -210,43 +223,30 @@ int main(void)
 			delay_ms(10);
 		}
 		
-	
+		/** 
+		* Calculate average temperature
+		* the center 4x4 sensor readings are considered for pinpoint calculation
+		* The sensor is placed at 8" height 
+		*/
+		uint16_t sum_r1 = (camera_buffer[18] + camera_buffer[19] + camera_buffer[20] + camera_buffer[21]);
+		uint16_t sum_r2 = (camera_buffer[26] + camera_buffer[27] + camera_buffer[28] + camera_buffer[29]);
+		uint16_t sum_r3 = (camera_buffer[34] + camera_buffer[35] + camera_buffer[36] + camera_buffer[37]);
+		uint16_t sum_r4 = (camera_buffer[42] + camera_buffer[43] + camera_buffer[44] + camera_buffer[45]);
+		uint16_t avg_temperature = (sum_r1 + sum_r2 + sum_r3 + sum_r4)/16; // Average calculation
+		
+		uint16_t correction = (0.6 * avg_temperature) + 20; // Calibration equation
+		
+		char temperature[3];
+		sprintf(temperature,"%d\n\r",correction);
+		SerialConsoleWriteString(temperature);
 
+	
+/** Blink LEDS to test the board >> SAMW25 compatible with DElos Board */
 // while (1) 
 // {
 // 		port_pin_toggle_output_level(LED_0_PIN);
 //		delay_ms(100);	
-		
-		/* Send every other packet with reversed data */
-		//! [revert_order]
-		/*if (wr_packet.data[0] == 0x00) {
-			wr_packet.data = &wr_buffer_reversed[0];
-			} else {
-			wr_packet.data = &wr_buffer[0];
-		}*/
-				
-// 		i2c_master_write_packet_job(&i2c_master_instance, &wr_packet);
-// 		char output[20];
-// 		sprintf(output,"Sent to I2C : %d %d %d %d - %d %d %d %d ---\n\r", wr_packet.data[0],wr_packet.data[1],wr_packet.data[2],wr_packet.data[3],wr_packet.data[4],wr_packet.data[5],wr_packet.data[6],wr_packet.data[7]);
-// 		SerialConsoleWriteString(output);
-// 		
-//		i2c_master_read_packet_job(&i2c_master_instance,&rd_packet);
-		/*else if (i2c_master_read_packet_job(&i2c_master_instance,&rd_packet) == status_busy)
-		{
-			serialconsolewritestring("busy\n\r");
-		}*/
-// 		
-// 		char readed[200];
-// 		sprintf(readed,"%u %u %u %u - %u %u %u %u ---\n\r", rd_packet.data[0],rd_packet.data[1],rd_packet.data[2],rd_packet.data[3],rd_packet.data[4],rd_packet.data[5],rd_packet.data[6],rd_packet.data[7]);
-// 		SerialConsoleWriteString(readed);
-	
-// 		char readed[1];
-// 		for (int i = 0; i < DATA_LENGTH; i++)
-// 		{
-// 			sprintf(readed,"%d\n\r", rd_packet.data[i]);
-// 			SerialConsoleWriteString(readed);	
-// 		}
-//  }
+// }
 }
 
 

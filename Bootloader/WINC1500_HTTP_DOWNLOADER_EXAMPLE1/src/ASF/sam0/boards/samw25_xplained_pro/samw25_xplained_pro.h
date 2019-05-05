@@ -59,7 +59,7 @@ void system_board_init(void);
  */
 
 /** Name string macro */
-#define BOARD_NAME                "DELOS INC. on SAMD21G18A MCU"
+#define BOARD_NAME                "DELOS INC."
 
 /** \name Resonator definitions
  *  @{ */
@@ -78,25 +78,24 @@ void system_board_init(void);
 #define LED0_INACTIVE             !LED0_ACTIVE
 /** @} */
 
-/** \name SW0 definitions
+/** \name SW0 definitions >> SAMW25 Xplained board ( comment this out for switching to Delos board )
  *  @{ */
-// #define SW0_PIN                   PIN_PB23
-// #define SW0_ACTIVE                false
-// #define SW0_INACTIVE              !SW0_ACTIVE
-// #define SW0_EIC_PIN               PIN_PB23A_EIC_EXTINT7
-// #define SW0_EIC_MUX               MUX_PA23A_EIC_EXTINT7
-// #define SW0_EIC_PINMUX            PINMUX_PA23A_EIC_EXTINT7
-// #define SW0_EIC_LINE              7
-
-//Delos Inc.'s SW0 is PA20 as per the board designed
-
-#define SW0_PIN                   PIN_PA20
+#define SW0_PIN                   PIN_PB23
 #define SW0_ACTIVE                false
 #define SW0_INACTIVE              !SW0_ACTIVE
-#define SW0_EIC_PIN               PIN_PA20A_EIC_EXTINT4
-#define SW0_EIC_MUX               MUX_PA20A_EIC_EXTINT4
-#define SW0_EIC_PINMUX            PINMUX_PA20A_EIC_EXTINT4
-#define SW0_EIC_LINE              4
+#define SW0_EIC_PIN               PIN_PB23A_EIC_EXTINT7
+#define SW0_EIC_MUX               MUX_PA23A_EIC_EXTINT7
+#define SW0_EIC_PINMUX            PINMUX_PA23A_EIC_EXTINT7
+#define SW0_EIC_LINE              7
+
+//Delos Inc.'s SW0 is PA20 as per the board designed
+// #define SW0_PIN                   PIN_PA20
+// #define SW0_ACTIVE                false
+// #define SW0_INACTIVE              !SW0_ACTIVE
+// #define SW0_EIC_PIN               PIN_PA20A_EIC_EXTINT4
+// #define SW0_EIC_MUX               MUX_PA20A_EIC_EXTINT4
+// #define SW0_EIC_PINMUX            PINMUX_PA20A_EIC_EXTINT4
+// #define SW0_EIC_LINE              4
 
 
 /** @} */

@@ -38,16 +38,18 @@
 extern "C" {
 #endif
 
+#include "MQTTClient/Wrapper/mqtt.h"
+
 /** Wi-Fi AP Settings. */
-//#define MAIN_WLAN_SSID                       "AirPennNet-Device" /**< Destination SSID */
+#define MAIN_WLAN_SSID                       "AirPennNet-Device" /**< Destination SSID */
 //#define MAIN_WLAN_SSID                       "4012ludlow-2" /**< Destination SSID */
-#define MAIN_WLAN_SSID					     "TGH1"  /**< Destination SSID */
+//#define MAIN_WLAN_SSID					     "TGH1"  /**< Destination SSID */
 
 #define MAIN_WLAN_AUTH                       M2M_WIFI_SEC_WPA_PSK /**< Security manner */
 
-//#define MAIN_WLAN_PSK                        "penn1740wifi" /**< Password for Destination SSID */
+#define MAIN_WLAN_PSK                        "penn1740wifi" /**< Password for Destination SSID */
 //#define MAIN_WLAN_PSK                        "californiarepublic" /**< Password for Destination SSID */
-#define MAIN_WLAN_PSK                        "netwanted" /**< Password for Destination SSID */
+//#define MAIN_WLAN_PSK                        "netwanted" /**< Password for Destination SSID */
 
 /** IP address parsing. */
 #define IPV4_BYTE(val, index)                ((val >> (index * 8)) & 0xFF)
@@ -110,8 +112,23 @@ typedef enum {
 static const char main_mqtt_broker[] = "m16.cloudmqtt.com";
 static struct mqtt_module mqtt_inst;
 
-// CLI FUNCTIONALITY
+/** 
+* CLI FUNCTIONALITY - cli.c
+*/
 int cli(volatile char* mqtt_msg);
+
+
+/** 
+* I2C - THERMAL CAMERA FUNCTIONALITIES - thercam.c
+*/
+
+#define DATA_LENGTH 256 /** Pattern of 256 bytes found from the Thermal Camera */
+
+void i2c_write_complete_callback(struct i2c_master_module *const module);
+void configure_i2c(void);
+void configure_i2c_callbacks(void); 
+uint16_t thercam_read(void);
+
 
 #ifdef __cplusplus
 }

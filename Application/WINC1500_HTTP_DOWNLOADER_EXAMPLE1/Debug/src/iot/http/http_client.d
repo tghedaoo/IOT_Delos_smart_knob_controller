@@ -155,6 +155,11 @@ src/iot/http/http_client.d src/iot/http/http_client.o: \
  ../src/ASF/sam0/drivers/sercom/sercom_pinout.h \
  ../src/ASF/sam0/drivers/sercom/sercom_interrupt.h \
  ../src/ASF/sam0/drivers/sercom/sercom.h \
+ ../src/ASF/sam0/drivers/sercom/i2c/i2c_common.h \
+ ../src/ASF/sam0/drivers/sercom/i2c/i2c_master.h \
+ ../src/ASF/sam0/drivers/sercom/i2c/i2c_common.h \
+ ../src/ASF/sam0/drivers/sercom/i2c/i2c_master_interrupt.h \
+ ../src/ASF/sam0/drivers/sercom/i2c/i2c_master.h \
  ../src/ASF/sam0/drivers/sercom/spi/spi.h \
  c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-none-eabi\include\string.h \
  c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-none-eabi\include\xlocale.h \
@@ -502,6 +507,16 @@ c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-no
 ../src/ASF/sam0/drivers/sercom/sercom_interrupt.h:
 
 ../src/ASF/sam0/drivers/sercom/sercom.h:
+
+../src/ASF/sam0/drivers/sercom/i2c/i2c_common.h:
+
+../src/ASF/sam0/drivers/sercom/i2c/i2c_master.h:
+
+../src/ASF/sam0/drivers/sercom/i2c/i2c_common.h:
+
+../src/ASF/sam0/drivers/sercom/i2c/i2c_master_interrupt.h:
+
+../src/ASF/sam0/drivers/sercom/i2c/i2c_master.h:
 
 ../src/ASF/sam0/drivers/sercom/spi/spi.h:
 
